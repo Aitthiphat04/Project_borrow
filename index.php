@@ -92,7 +92,7 @@ foreach ($registeredBorrowers as $b) {
     </div>
     <div class="field">
         <label for="borrower_phone">เบอร์ผู้ยืม</label>
-        <input id="borrower_phone" type="tel" placeholder="ถ้ามี">
+        <input id="borrower_phone" type="tel" maxlength="10" inputmode="numeric" placeholder="ถ้ามี">
     </div>
     <div class="field">
         <label for="item_name">ชื่ออุปกรณ์ <span class="required">*</span></label>
@@ -166,6 +166,11 @@ if(borrowerSelect){
                 borrowerPhone.value=opt.dataset.phone;
             }
         }
+    });
+}
+if(borrowerPhone){
+    borrowerPhone.addEventListener('input',()=>{
+        borrowerPhone.value=borrowerPhone.value.replace(/\D/g,'').slice(0,10);
     });
 }
 initBorrowerField();

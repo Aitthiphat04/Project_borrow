@@ -26,13 +26,15 @@ if (!array_key_exists($defaultDept, DEPARTMENTS)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register_borrower') {
     $deptKey = trim($_POST['dept_key'] ?? '');
     $fullName = trim($_POST['full_name'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
+    $phone = preg_replace('/\D/', '', trim($_POST['phone'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
     $confirmPassword = (string)($_POST['confirm_password'] ?? '');
     $autoLogin = !empty($_POST['auto_login']);
 
     if (empty($phone)) {
         $errorMessage = 'กรุณากรอกเบอร์โทรศัพท์ติดต่อ';
+    } elseif (strlen($phone) !== 10) {
+        $errorMessage = 'กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 10 หลัก (เช่น 0812345678)';
     } elseif ($password !== $confirmPassword) {
         $errorMessage = 'รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง';
     } else {
@@ -613,7 +615,7 @@ if (!function_exists('e')) {
                     <label for="phone">
                         <span>3. เบอร์โทรศัพท์ติดต่อ<span class="req">*</span></span>
                     </label>
-                    <input type="tel" name="phone" id="phone" class="form-control" required value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
+                    <input type="tel" name="phone" id="phone" class="form-control" required maxlength="10" minlength="10" pattern="[0-9]{10}" inputmode="numeric" title="กรุณากรอกตัวเลข 10 หลัก" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
                 </div>
 
                 <!-- 4. รหัสผ่าน และ ยืนยันรหัสผ่าน -->
@@ -704,6 +706,14 @@ document.querySelectorAll('.password-toggle-btn').forEach(btn => {
     });
 });
 
+// กรองเบอร์โทรศัพท์ให้เป็นตัวเลขไม่เกิน 10 หลักเท่านั้น
+const phoneInput = document.getElementById('phone');
+if (phoneInput) {
+    phoneInput.addEventListener('input', () => {
+        phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+    });
+}
+
 // ตรวจสอบความถูกต้องก่อนส่ง
 const regForm = document.getElementById('registerForm');
 if (regForm) {
@@ -712,6 +722,13 @@ if (regForm) {
         if (!phone) {
             e.preventDefault();
             alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อ');
+            document.getElementById('phone').focus();
+            return;
+        }
+
+        if (phone.length !== 10) {
+            e.preventDefault();
+            alert('กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 10 หลัก (ปัจจุบัน ' + phone.length + ' หลัก)');
             document.getElementById('phone').focus();
             return;
         }
