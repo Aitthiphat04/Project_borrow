@@ -546,10 +546,13 @@ function updateUsersDropdown() {
         // รายการในกล่องอ้างอิงด้านล่าง
         const row = document.createElement('div');
         row.className = 'role-ref-row';
+        const displayTag = (u.username.startsWith('u_') || u.role === 'borrower')
+            ? (u.phone ? `(${u.phone})` : '')
+            : `(${u.username})`;
         row.innerHTML = `
             <div>
                 <span class="role-ref-name">${u.full_name}</span>
-                <span class="role-ref-dept">(${u.username})</span>
+                ${displayTag ? `<span class="role-ref-dept">${displayTag}</span>` : ''}
             </div>
             <span class="role-ref-tag ${u.role}">${u.role_title}</span>
         `;

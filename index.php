@@ -78,7 +78,7 @@ foreach ($registeredBorrowers as $b) {
                                 data-phone="<?= htmlspecialchars($u['phone'] ?? '', ENT_QUOTES) ?>"
                                 data-username="<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>"
                                 data-dept="<?= htmlspecialchars($u['dept_name'], ENT_QUOTES) ?>">
-                            <?= htmlspecialchars($u['full_name'], ENT_QUOTES) ?> (<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>)
+                            <?= htmlspecialchars($u['full_name'], ENT_QUOTES) ?><?= !empty($u['phone']) ? ' (' . htmlspecialchars($u['phone'], ENT_QUOTES) . ')' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </optgroup>

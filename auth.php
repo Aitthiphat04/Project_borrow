@@ -83,7 +83,7 @@ if (isset($conn) && $conn instanceof mysqli) {
 /**
  * สมัครสมาชิกลงทะเบียนผู้ยืมอุปกรณ์ (Register Borrower)
  */
-function register_borrower($conn, $dept_key, $full_name, $username, $password, $phone = '') {
+function register_borrower($conn, $dept_key, $full_name, $username = '', $password = '', $phone = '') {
     $full_name = trim((string)$full_name);
     $username = trim((string)$username);
     $password = (string)$password;
@@ -96,34 +96,33 @@ function register_borrower($conn, $dept_key, $full_name, $username, $password, $
     if (empty($dept_key) || !isset(DEPARTMENTS[$dept_key])) {
         return ['success' => false, 'error' => 'กรุณาเลือกสังกัดแผนกที่ถูกต้อง'];
     }
-    if (empty($username)) {
-        return ['success' => false, 'error' => 'กรุณากรอกชื่อผู้ใช้งาน'];
-    }
-    if (mb_strlen($username) < 3 || mb_strlen($username) > 40) {
-        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานต้องมีความยาวระหว่าง 3-40 ตัวอักษร'];
-    }
-    if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $username)) {
-        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานสามารถใช้ได้เฉพาะตัวอักษรภาษาอังกฤษ ตัวเลข ขีดล่าง (_) ขีดกลาง (-) หรือจุด (.)'];
-    }
-    if (empty($password)) {
-        return ['success' => false, 'error' => 'กรุณากรอกรหัสผ่าน'];
-    }
-    if (mb_strlen($password) < 4) {
-        return ['success' => false, 'error' => 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'];
-    }
-
     $dept_name = DEPARTMENTS[$dept_key]['name'];
 
-    // ตรวจสอบชื่อผู้ใช้ซ้ำ
-    $stmt = $conn->prepare("SELECT id FROM department_users WHERE username = ? LIMIT 1");
-    if (!$stmt) {
-        return ['success' => false, 'error' => 'ข้อผิดพลาดระบบฐานข้อมูล'];
-    }
-    $stmt->bind_param('s', $username);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($res && $res->num_rows > 0) {
-        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่น'];
+    // หากไม่ได้ระบุชื่อผู้ใช้งาน ให้ระบบสร้าง username อัตโนมัติที่ไม่ซ้ำในฐานข้อมูล
+    if (empty($username)) {
+        do {
+            $username = 'u_' . substr(md5(uniqid(mt_rand(), true)), 0, 8);
+            $chk = $conn->query("SELECT id FROM department_users WHERE username = '$username' LIMIT 1");
+        } while ($chk && $chk->num_rows > 0);
+    } else {
+        if (mb_strlen($username) < 3 || mb_strlen($username) > 40) {
+            return ['success' => false, 'error' => 'ชื่อผู้ใช้งานต้องมีความยาวระหว่าง 3-40 ตัวอักษร'];
+        }
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $username)) {
+            return ['success' => false, 'error' => 'ชื่อผู้ใช้งานสามารถใช้ได้เฉพาะตัวอักษรภาษาอังกฤษ ตัวเลข ขีดล่าง (_) ขีดกลาง (-) หรือจุด (.)'];
+        }
+
+        // ตรวจสอบชื่อผู้ใช้ซ้ำ
+        $stmt = $conn->prepare("SELECT id FROM department_users WHERE username = ? LIMIT 1");
+        if (!$stmt) {
+            return ['success' => false, 'error' => 'ข้อผิดพลาดระบบฐานข้อมูล'];
+        }
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            return ['success' => false, 'error' => 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่น'];
+        }
     }
 
     // แฮชรหัสผ่าน

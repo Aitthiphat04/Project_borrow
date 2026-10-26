@@ -26,7 +26,6 @@ if (!array_key_exists($defaultDept, DEPARTMENTS)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register_borrower') {
     $deptKey = trim($_POST['dept_key'] ?? '');
     $fullName = trim($_POST['full_name'] ?? '');
-    $username = trim($_POST['username'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $password = (string)($_POST['password'] ?? '');
     $confirmPassword = (string)($_POST['confirm_password'] ?? '');
@@ -35,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($password !== $confirmPassword) {
         $errorMessage = 'รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง';
     } else {
-        $regResult = register_borrower($conn, $deptKey, $fullName, $username, $password, $phone);
+        $regResult = register_borrower($conn, $deptKey, $fullName, '', $password, $phone);
         if ($regResult['success']) {
             $user = $regResult['user'];
             if ($autoLogin) {
@@ -540,10 +539,12 @@ if (!function_exists('e')) {
                         <span class="info-label">ชื่อ-นามสกุล:</span>
                         <span class="info-val"><?= e($successData['full_name']) ?></span>
                     </div>
+                    <?php if (!empty($successData['phone'])): ?>
                     <div class="info-row">
-                        <span class="info-label">ชื่อผู้ใช้งาน:</span>
-                        <span class="info-val"><?= e($successData['username']) ?></span>
+                        <span class="info-label">เบอร์โทรศัพท์:</span>
+                        <span class="info-val"><?= e($successData['phone']) ?></span>
                     </div>
+                    <?php endif; ?>
                     <div class="info-row">
                         <span class="info-label">สังกัดแผนก:</span>
                         <span class="info-val"><?= e($successData['dept_name']) ?></span>
@@ -618,28 +619,20 @@ if (!function_exists('e')) {
                     <input type="text" name="full_name" id="fullName" class="form-control" required value="<?= e($_POST['full_name'] ?? '') ?>" autocomplete="name">
                 </div>
 
-                <!-- 3. ข้อมูลบัญชี: ชื่อผู้ใช้ และ เบอร์โทรศัพท์ -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="username">
-                            <span>3. ชื่อผู้ใช้งาน (Username)<span class="req">*</span></span>
-                        </label>
-                        <input type="text" name="username" id="username" class="form-control" required value="<?= e($_POST['username'] ?? '') ?>" autocomplete="username" pattern="[a-zA-Z0-9_\-\.]{3,40}" title="ภาษาอังกฤษ ตัวเลข ขีดล่าง ขีดกลาง หรือจุด ความยาว 3-40 ตัวอักษร">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">
-                            <span>4. เบอร์โทรศัพท์ติดต่อ</span>
-                            <span class="hint">ถ้ามี</span>
-                        </label>
-                        <input type="tel" name="phone" id="phone" class="form-control" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
-                    </div>
+                <!-- 3. เบอร์โทรศัพท์ติดต่อ -->
+                <div class="form-group">
+                    <label for="phone">
+                        <span>3. เบอร์โทรศัพท์ติดต่อ</span>
+                        <span class="hint">ถ้ามี</span>
+                    </label>
+                    <input type="tel" name="phone" id="phone" class="form-control" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
                 </div>
 
                 <!-- 4. รหัสผ่าน และ ยืนยันรหัสผ่าน -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">
-                            <span>5. กำหนดรหัสผ่าน<span class="req">*</span></span>
+                            <span>4. กำหนดรหัสผ่าน<span class="req">*</span></span>
                             <span class="hint">ขั้นต่ำ 4 ตัว</span>
                         </label>
                         <div class="form-control-wrap">
@@ -658,7 +651,7 @@ if (!function_exists('e')) {
                     </div>
                     <div class="form-group">
                         <label for="confirmPassword">
-                            <span>6. ยืนยันรหัสผ่าน<span class="req">*</span></span>
+                            <span>5. ยืนยันรหัสผ่าน<span class="req">*</span></span>
                         </label>
                         <div class="form-control-wrap">
                             <input type="password" name="confirm_password" id="confirmPassword" class="form-control has-toggle" minlength="4" required autocomplete="new-password">
