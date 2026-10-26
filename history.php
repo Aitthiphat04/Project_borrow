@@ -90,8 +90,6 @@ main.shell:before{content:"";position:absolute;width:320px;height:320px;top:-240
 .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .borrow-open{border:0;border-radius:13px;padding:12px 22px;background:linear-gradient(135deg,#fae188,#d9ac3b);color:#2a174d;font:inherit;font-size:1.02rem;font-weight:900;letter-spacing:.02em;cursor:pointer;box-shadow:0 5px 14px #25103a30;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:transform .18s,filter .18s,box-shadow .18s}
 .btn-select-mode{border:1px solid #fca5b0;border-radius:13px;padding:12px 22px;font:inherit;font-size:1.02rem;font-weight:900;letter-spacing:.02em;cursor:pointer;color:#fff;background:linear-gradient(135deg,#e54d68,#ba1e3d);box-shadow:0 5px 14px #ba1e3d3e;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:transform .18s,filter .18s,box-shadow .18s}
-.btn-clean-orphans{border:1px solid rgba(255,255,255,0.3);border-radius:13px;padding:12px 18px;font:inherit;font-size:.95rem;font-weight:900;letter-spacing:.02em;cursor:pointer;color:#fff;background:rgba(255,255,255,0.18);backdrop-filter:blur(6px);display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:transform .18s,filter .18s,background .18s}
-.btn-clean-orphans:hover{background:rgba(255,255,255,0.28);transform:translateY(-2px)}
 .select-mode .btn-select-mode{background:linear-gradient(135deg,#67587d,#403254);border-color:#8e7fa6;box-shadow:0 5px 14px #250c5030}
 .actions .borrow-open:hover,.btn-select-mode:hover{filter:brightness(1.08);transform:translateY(-2px)}
 .batch-bar{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:min(960px,94%);z-index:99;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 22px;border-radius:18px;background:rgba(255,255,255,0.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:2px solid #f3b5c4;box-shadow:0 16px 42px rgba(122,21,50,0.22),0 4px 14px rgba(75,38,131,0.12);animation:slideUpFloat .26s cubic-bezier(0.16,1,0.3,1)}
@@ -242,7 +240,7 @@ th:nth-child(11),th.col-manage,td.col-manage{width:165px;min-width:165px}
 .modal-borrower-badge{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fbf9ff;border:1.5px solid #e1d3f3;border-radius:12px;margin-bottom:12px}
 .modal-borrower-badge img{width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid var(--gold);flex:none}
 @media(max-width:650px){html body{padding:8px 6px}.shell .top{margin:-16px -12px 14px;padding:14px 12px}.pea-logo{width:56px;height:56px}.compare-grid,.detail-grid{grid-template-columns:1fr}.image-panel img{height:180px}.filter-toolbar{flex-direction:column;align-items:stretch;gap:8px}.filter-right{margin-left:0;width:100%}.search-box{width:100%}.batch-bar{bottom:10px;width:96%;padding:10px 12px;gap:8px}.batch-left,.batch-right{width:100%;justify-content:space-between}.select-mode .table-wrap{margin-bottom:120px}}
-</style></head><body><main class="shell"><div class="top"><div><div class="brand"><img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA"><div><div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b> <span class="dept-badge"><?= e($currentUser['dept_name']) ?></span> <span class="user-badge"><?= e($currentUser['full_name']) ?> (<?= e($currentUser['role_title']) ?>)</span></div><h1>&#3611;&#3619;&#3632;&#3623;&#3633;&#3605;&#3636;&#3585;&#3634;&#3619;&#3618;&#3639;&#3617;&#45;&#3588;&#3639;&#3609;</h1><p class="subtitle">ระบบสำหรับผู้ดูแลระบบ (<?= e($currentUser['dept_name']) ?>)</p></div></div></div><div class="actions"><button class="borrow-open" id="borrowOpen">&#65291;&#32;&#3618;&#3639;&#3617;&#3629;&#3640;&#3611;&#3585;&#3619;&#3603;&#3660;</button><button type="button" class="btn-select-mode" id="btnSelectMode">ลบอุปกรณ์</button><button type="button" class="btn-clean-orphans" id="btnCleanOrphans" title="ตรวจสอบและลบไฟล์รูปภาพที่ไม่มีรายการในฐานข้อมูล">ล้างรูปตกค้าง</button><a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a></div></div>
+</style></head><body><main class="shell"><div class="top"><div><div class="brand"><img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA"><div><div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b> <span class="dept-badge"><?= e($currentUser['dept_name']) ?></span> <span class="user-badge"><?= e($currentUser['full_name']) ?> (<?= e($currentUser['role_title']) ?>)</span></div><h1>&#3611;&#3619;&#3632;&#3623;&#3633;&#3605;&#3636;&#3585;&#3634;&#3619;&#3618;&#3639;&#3617;&#45;&#3588;&#3639;&#3609;</h1><p class="subtitle">ระบบสำหรับผู้ดูแลระบบ (<?= e($currentUser['dept_name']) ?>)</p></div></div></div><div class="actions"><button class="borrow-open" id="borrowOpen">&#65291;&#32;&#3618;&#3639;&#3617;&#3629;&#3640;&#3611;&#3585;&#3619;&#3603;&#3660;</button><button type="button" class="btn-select-mode" id="btnSelectMode">ลบอุปกรณ์</button><a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a></div></div>
 <div class="batch-bar" id="batchBar" aria-hidden="true"><div class="batch-left"><label class="select-all-label"><input type="checkbox" id="selectAllCheckbox" class="row-checkbox"><span>เลือกทั้งหมด (<span id="totalItemsCount"><?= $result ? $result->num_rows : 0 ?></span> รายการ)</span></label><span class="batch-count">เลือกแล้ว <b id="selectedCountBadge">0</b> รายการ</span></div><div class="batch-right"><button type="button" class="batch-btn batch-delete" id="batchDeleteBtn" disabled>ลบรายการที่เลือก (<span id="batchDeleteCount">0</span>)</button><button type="button" class="batch-btn batch-cancel" id="batchCancelBtn">ยกเลิกการลบ</button></div></div>
 <div class="filter-toolbar">
     <div class="filter-left">
@@ -527,26 +525,6 @@ if(batchDeleteBtn){
             alert(t);
             if(res.ok)location.reload();
         }catch(err){alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อลบข้อมูลได้');}
-    });
-}
-const btnCleanOrphans=document.getElementById('btnCleanOrphans');
-if(btnCleanOrphans){
-    btnCleanOrphans.addEventListener('click',async()=>{
-        if(!confirm('ต้องการตรวจสอบและลบไฟล์รูปภาพที่ไม่มีในฐานข้อมูล (รูปตกค้างในโฟลเดอร์ uploads) ใช่หรือไม่?'))return;
-        btnCleanOrphans.disabled=true;
-        const oldText=btnCleanOrphans.textContent;
-        btnCleanOrphans.textContent='กำลังล้างรูป...';
-        try{
-            const fd=new FormData();
-            fd.append('action','cleanup_orphans');
-            const res=await fetch('save_record.php',{method:'POST',body:fd});
-            const t=await res.text();
-            alert(t);
-        }catch(err){alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อล้างรูปได้');}
-        finally{
-            btnCleanOrphans.disabled=false;
-            btnCleanOrphans.textContent=oldText;
-        }
     });
 }
 
