@@ -287,7 +287,17 @@ function require_department_auth() {
  * ตรวจสอบการล็อกอินและจำกัดสิทธิ์ตามบทบาท (Role Permission Guard)
  */
 function require_auth_and_role($allowedRoles = []) {
+    $isAjax = isset($_GET['ajax_table']) 
+        || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+        || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
     if (empty($_SESSION['dept_logged_in']) || empty($_SESSION['user_role'])) {
+        if ($isAjax) {
+            http_response_code(401);
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(['error' => 'unauthorized', 'redirect' => 'login.php']);
+            exit;
+        }
         header('Location: login.php');
         exit;
     }
@@ -298,6 +308,12 @@ function require_auth_and_role($allowedRoles = []) {
     }
 
     if (!empty($allowedRoles) && !in_array($currentRole, $allowedRoles, true)) {
+        if ($isAjax) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=UTF-8');
+            echo json_encode(['error' => 'forbidden', 'redirect' => 'login.php']);
+            exit;
+        }
         // หากผู้ใช้ไม่มีสิทธิ์เข้าหน้านี้ ให้พาไปหน้าที่ตรงกับบทบาทของตนเอง
         if ($currentRole === 'borrower') {
             header('Location: borrower.php');

@@ -571,8 +571,17 @@ async function pollTableData() {
             cache: 'no-store'
         });
 
+        if (res.status === 401 || res.status === 403 || res.redirected) {
+            window.location.href = 'login.php';
+            return;
+        }
+
         if (res.ok) {
             const html = await res.text();
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
+                window.location.href = 'login.php';
+                return;
+            }
             const tbodyEl = document.querySelector('.table-wrap tbody');
             const noResults = document.getElementById('noResultsRow');
 

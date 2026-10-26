@@ -1073,9 +1073,20 @@ async function pollLenderData(force = false) {
         url.searchParams.set('ajax_table', '1');
         url.searchParams.set('_t', Date.now());
 
-        const res = await fetch(url.toString(), { cache: 'no-store' });
+        const res = await fetch(url.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            cache: 'no-store'
+        });
+        if (res.status === 401 || res.status === 403 || res.redirected) {
+            window.location.href = 'login.php';
+            return;
+        }
         if (res.ok) {
             const html = await res.text();
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
+                window.location.href = 'login.php';
+                return;
+            }
             const pendingHeader = res.headers.get('X-Pending-Ext-Count');
             if (pendingHeader !== null) {
                 const topCountEl = document.getElementById('topPendingCount');
