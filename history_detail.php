@@ -300,7 +300,12 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
                         <div class="item"><span class="label">ชื่ออุปกรณ์</span><span class="value"><?= e($row['item_name']) ?></span></div>
                         <div class="item"><span class="label">รายละเอียด / อุปกรณ์ย่อย</span><span class="value"><?= e($row['sub_item_name'] ?: '-') ?></span></div>
                         <div class="item"><span class="label">เลขผลิตภัณฑ์</span><span class="value"><?= e($row['serial_number'] ?: '-') ?></span></div>
-                        <div class="item"><span class="label">ระยะวัน-เวลาการยืม</span><span class="value"><?= e($row['borrow_duration'] ?: '-') ?></span></div>
+                        <div class="item"><span class="label">ระยะวัน-เวลาการยืม</span><span class="value"><?= e($row['borrow_duration'] ?: '-') ?><?= is_numeric($row['borrow_duration']) ? ' วัน' : '' ?></span></div>
+                        <?php if (!empty($row['extension_status']) && $row['extension_status'] === 'approved'): ?>
+                            <div class="item"><span class="label">สถานะการต่อเวลา</span><span class="value" style="color:#27ae60; font-weight:800;">อนุมัติต่อเวลาเพิ่ม +<?= (int)$row['extension_days'] ?> วัน</span></div>
+                        <?php elseif (!empty($row['extension_status']) && $row['extension_status'] === 'pending'): ?>
+                            <div class="item"><span class="label">สถานะการต่อเวลา</span><span class="value" style="color:#e67e22; font-weight:800;">ขอต่อเวลาเพิ่ม +<?= (int)$row['extension_days'] ?> วัน (รอพิจารณา)</span></div>
+                        <?php endif; ?>
                         <div class="item"><span class="label">วันและเวลาส่งมอบ</span><span class="value"><?= date('d/m/Y H:i', strtotime($row['record_time'])) ?></span></div>
                     </div>
                 </section>

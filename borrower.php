@@ -448,16 +448,71 @@ if (isset($_GET['ajax_table'])) {
         .note { margin-top: 12px; padding: 10px; background: #fff5d8; border-radius: 9px; color: #6a5216; font-size: .84rem; }
 
         /* Extend Modal */
-        .extend-modal-box { width: min(540px, 94%); padding: 22px; }
-        .day-options { display: flex; gap: 8px; margin: 10px 0 14px; flex-wrap: wrap; }
-        .btn-day {
-            border: 1.5px solid #d9cded; border-radius: 9px; padding: 8px 14px;
-            background: #fbf9ff; color: var(--deep); font: inherit; font-size: .82rem;
-            font-weight: 800; cursor: pointer; transition: all .16s ease;
+        .extend-modal-box { width: min(480px, 94%); padding: 22px; }
+        .form-label { display: block; font-weight: 800; font-size: .86rem; color: var(--deep); margin-bottom: 6px; text-align: left; }
+        .input-days-group {
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 100%;
+            margin-bottom: 8px;
         }
-        .btn-day:hover { background: #eee5f9; border-color: var(--purple); }
-        .btn-day.selected { background: var(--purple); color: white; border-color: var(--purple); box-shadow: 0 2px 7px #4b268335; }
-        .form-label { display: block; font-weight: 800; font-size: .84rem; color: var(--deep); margin-bottom: 6px; text-align: left; }
+        .days-input {
+            width: 100%;
+            height: 48px;
+            border: 1.5px solid #d9cded;
+            border-radius: 11px;
+            padding: 0 54px 0 14px;
+            font: inherit;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--deep);
+            background: #fff;
+            outline: none;
+            transition: all .18s ease;
+            box-sizing: border-box;
+        }
+        .days-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px #d9ac3b25;
+        }
+        .days-unit {
+            position: absolute;
+            right: 16px;
+            font-size: .95rem;
+            font-weight: 800;
+            color: var(--purple);
+            pointer-events: none;
+        }
+        .quick-days-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .quick-days-label {
+            font-size: .78rem;
+            font-weight: 700;
+            color: #796c90;
+        }
+        .btn-quick-day {
+            border: 1px solid #d9cded;
+            border-radius: 8px;
+            padding: 5px 11px;
+            background: #fbf9ff;
+            color: var(--deep);
+            font: inherit;
+            font-size: .80rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .14s ease;
+        }
+        .btn-quick-day:hover {
+            background: #ede4f8;
+            border-color: var(--purple);
+            color: var(--purple);
+        }
         .reason-textarea {
             width: 100%; border: 1.5px solid #d9cded; border-radius: 10px; padding: 10px;
             font: inherit; font-size: .86rem; outline: none; resize: vertical; box-sizing: border-box;
@@ -599,16 +654,22 @@ if (isset($_GET['ajax_table'])) {
         <h2>ยื่นคำขอต่อเวลายืมอุปกรณ์</h2>
         <form id="extendForm">
             <input type="hidden" id="extendTransactionId" name="id" value="">
-            <div style="font-weight: 800; color: var(--purple); font-size: 1rem; margin-bottom: 12px; padding: 10px 12px; background: #f6f0fd; border-radius: 10px; border: 1px solid #e1d3f3;" id="extendItemName">-</div>
+            <div style="font-weight: 800; color: var(--purple); font-size: 1rem; margin-bottom: 14px; padding: 10px 14px; background: #f6f0fd; border-radius: 10px; border: 1px solid #e1d3f3;" id="extendItemName">-</div>
             
-            <label class="form-label">เลือกจำนวนวันที่ต้องการขอต่อเวลา:</label>
-            <div class="day-options">
-                <button type="button" class="btn-day selected" data-days="1">+1 วัน</button>
-                <button type="button" class="btn-day" data-days="3">+3 วัน</button>
-                <button type="button" class="btn-day" data-days="5">+5 วัน</button>
-                <button type="button" class="btn-day" data-days="7">+7 วัน</button>
+            <label class="form-label" for="extensionDaysInput">ระบุจำนวนวันที่ต้องการขอต่อเวลา:</label>
+            <div class="input-days-group">
+                <input type="number" id="extensionDaysInput" name="extension_days" class="days-input" min="1" max="365" step="1" value="1" placeholder="กรอกจำนวนวัน เช่น 3" required>
+                <span class="days-unit">วัน</span>
             </div>
-            <input type="hidden" id="extensionDaysInput" name="extension_days" value="1">
+            <div class="quick-days-wrap">
+                <span class="quick-days-label">เลือกด่วน:</span>
+                <button type="button" class="btn-quick-day" data-days="1">+1 วัน</button>
+                <button type="button" class="btn-quick-day" data-days="3">+3 วัน</button>
+                <button type="button" class="btn-quick-day" data-days="5">+5 วัน</button>
+                <button type="button" class="btn-quick-day" data-days="7">+7 วัน</button>
+                <button type="button" class="btn-quick-day" data-days="14">+14 วัน</button>
+                <button type="button" class="btn-quick-day" data-days="30">+30 วัน</button>
+            </div>
 
             <label class="form-label" for="extensionReasonInput">เหตุผลในการขอต่อเวลา:</label>
             <textarea id="extensionReasonInput" name="extension_reason" class="reason-textarea" rows="3" placeholder="ระบุเหตุผล เช่น ติดภารกิจภาคสนามยังไม่เสร็จ, รอตรวจเช็คอุปกรณ์เพิ่มเติม..." required></textarea>
@@ -800,20 +861,22 @@ const extensionDaysInput = document.getElementById('extensionDaysInput');
 const extensionReasonInput = document.getElementById('extensionReasonInput');
 const closeExtendModal = document.getElementById('closeExtendModal');
 
-document.querySelectorAll('.btn-day').forEach(btn => {
+document.querySelectorAll('.btn-quick-day').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.btn-day').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
         extensionDaysInput.value = btn.dataset.days;
+        extensionDaysInput.focus();
+        extensionDaysInput.select();
     });
 });
 
 function openExtendModal(id, item, borrower) {
     extendTransactionId.value = id;
     extendItemName.textContent = `${item} — ผู้ยืม: ${borrower}`;
+    extensionDaysInput.value = '1';
     extensionReasonInput.value = '';
     extendModal.classList.add('show');
-    extensionReasonInput.focus();
+    extensionDaysInput.focus();
+    extensionDaysInput.select();
 }
 if (closeExtendModal) closeExtendModal.addEventListener('click', () => extendModal.classList.remove('show'));
 
@@ -821,9 +884,18 @@ if (extendForm) {
     extendForm.addEventListener('submit', async e => {
         e.preventDefault();
         const id = extendTransactionId.value;
-        const days = extensionDaysInput.value;
+        const days = parseInt(extensionDaysInput.value, 10);
         const reason = extensionReasonInput.value.trim();
-        if (!reason) { alert('กรุณากรอกเหตุผลในการขอต่อเวลา'); return; }
+        if (!days || days < 1) {
+            alert('กรุณากรอกจำนวนวันที่ต้องการขอต่อเวลาอย่างน้อย 1 วัน');
+            extensionDaysInput.focus();
+            return;
+        }
+        if (!reason) {
+            alert('กรุณากรอกเหตุผลในการขอต่อเวลา');
+            extensionReasonInput.focus();
+            return;
+        }
 
         const submitBtn = document.getElementById('submitExtendBtn');
         submitBtn.disabled = true;
