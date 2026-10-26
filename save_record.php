@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: text/plain; charset=utf-8');
-$conn = new mysqli('localhost', 'root', '', 'borrow_db');
-if ($conn->connect_error) { http_response_code(500); exit('ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ' . $conn->connect_error); }
-$conn->set_charset('utf8mb4');
+date_default_timezone_set('Asia/Bangkok');
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/db.php';
 
 function column_exists($conn, $column) {
     $column = $conn->real_escape_string($column);
@@ -10,7 +10,23 @@ function column_exists($conn, $column) {
     return $result && $result->num_rows > 0;
 }
 function ensure_transaction_columns($conn) {
-    $columns = ['sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''", 'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''", 'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''", 'borrow_duration' => "VARCHAR(100) NOT NULL DEFAULT ''", 'lender_name' => "VARCHAR(100) NOT NULL DEFAULT ''", 'return_image_path' => "TEXT NULL", 'return_time' => "DATETIME NULL", 'condition_status' => "VARCHAR(30) NOT NULL DEFAULT 'pending'", 'condition_note' => "TEXT NULL"];
+    $columns = [
+        'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
+        'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
+        'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
+        'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
+        'borrow_duration' => "VARCHAR(100) NOT NULL DEFAULT ''",
+        'lender_name' => "VARCHAR(100) NOT NULL DEFAULT ''",
+        'borrower_image_path' => "TEXT NULL",
+        'return_image_path' => "TEXT NULL",
+        'return_time' => "DATETIME NULL",
+        'condition_status' => "VARCHAR(30) NOT NULL DEFAULT 'pending'",
+        'condition_note' => "TEXT NULL",
+        'extension_status' => "VARCHAR(20) NOT NULL DEFAULT 'none'",
+        'extension_days' => "INT NOT NULL DEFAULT 0",
+        'extension_reason' => "TEXT NULL",
+        'extension_request_time' => "DATETIME NULL"
+    ];
     foreach ($columns as $name => $definition) if (!column_exists($conn, $name)) $conn->query("ALTER TABLE transactions ADD COLUMN `$name` $definition");
 
     $image_column = $conn->query("SHOW COLUMNS FROM transactions LIKE 'image_path'");
@@ -38,9 +54,16 @@ function delete_image_paths($value) {
         if (is_file($absolute)) unlink($absolute);
     }
 }
-ensure_transaction_columns($conn);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_condition') {
+function resequence_ids($conn) {
+    $conn->query("SET @num := 0");
+    $conn->query("UPDATE transactions SET id = (@num := @num + 1) ORDER BY id ASC");
+    $conn->query("ALTER TABLE transactions AUTO_INCREMENT = 1");
+}
+ensure_transaction_columns($conn);
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
+
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'update_condition') {
     $id = (int)($_POST['id'] ?? 0);
     $status = $_POST['condition_status'] ?? '';
     $note = trim($_POST['condition_note'] ?? '');
@@ -53,7 +76,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     http_response_code(500); exit('Unable to update condition');
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'update_note') {
+    $id = (int)($_POST['id'] ?? 0);
+    $note = trim($_POST['condition_note'] ?? '');
+    if ($id < 1) { http_response_code(422); exit('ไม่พบรายการที่ต้องการบันทึกหมายเหตุ'); }
+    $stmt = $conn->prepare("UPDATE transactions SET condition_note = ? WHERE id = ? AND action_type = 'Borrow'");
+    $stmt->bind_param('si', $note, $id);
+    if ($stmt->execute()) exit('บันทึกหมายเหตุเรียบร้อยแล้ว');
+    http_response_code(500); exit('ไม่สามารถบันทึกหมายเหตุได้: ' . $conn->error);
+}
+
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'request_extension') {
+    $id = (int)($_POST['id'] ?? 0);
+    $days = (int)($_POST['extension_days'] ?? 0);
+    $reason = trim($_POST['extension_reason'] ?? '');
+    if ($id < 1 || $days < 1) {
+        http_response_code(422);
+        exit('กรุณาระบุจำนวนวันที่ต้องการขอต่อเวลาอย่างน้อย 1 วัน');
+    }
+    $stmt = $conn->prepare("UPDATE transactions SET extension_status = 'pending', extension_days = ?, extension_reason = ?, extension_request_time = NOW() WHERE id = ? AND return_time IS NULL");
+    $stmt->bind_param('isi', $days, $reason, $id);
+    if ($stmt->execute() && $stmt->affected_rows >= 0) {
+        exit("ส่งคำขอต่อเวลา ($days วัน) เรียบร้อยแล้ว กรุณารอเจ้าหน้าที่ตรวจสอบอนุมัติ");
+    }
+    http_response_code(500);
+    exit('ไม่สามารถส่งคำขอต่อเวลาได้');
+}
+
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'approve_extension') {
+    $id = (int)($_POST['id'] ?? 0);
+    $decision = $_POST['decision'] ?? ''; // 'approve' or 'reject'
+    if ($id < 1 || !in_array($decision, ['approve', 'reject'], true)) {
+        http_response_code(422);
+        exit('คำขอไม่ถูกต้อง');
+    }
+    if ($decision === 'approve') {
+        $q = $conn->query("SELECT borrow_duration, extension_days FROM transactions WHERE id = $id AND return_time IS NULL");
+        if ($q && ($row = $q->fetch_assoc())) {
+            $curDays = (int)$row['borrow_duration'];
+            if ($curDays < 1) $curDays = 7;
+            $extDays = (int)$row['extension_days'];
+            $newDays = $curDays + ($extDays > 0 ? $extDays : 1);
+            $newDaysStr = (string)$newDays;
+            $stmt = $conn->prepare("UPDATE transactions SET borrow_duration = ?, extension_status = 'approved' WHERE id = ?");
+            $stmt->bind_param('si', $newDaysStr, $id);
+            if ($stmt->execute()) exit("อนุมัติต่อเวลาเพิ่ม $extDays วัน เรียบร้อยแล้ว (รวมเป็น $newDays วัน)");
+        }
+        http_response_code(404);
+        exit('ไม่พบรายการหรือรายการนี้คืนอุปกรณ์แล้ว');
+    } else {
+        $stmt = $conn->prepare("UPDATE transactions SET extension_status = 'rejected' WHERE id = ?");
+        $stmt->bind_param('i', $id);
+        if ($stmt->execute()) exit('ปฏิเสธคำขอต่อเวลาเรียบร้อยแล้ว');
+    }
+    http_response_code(500);
+    exit('เกิดข้อผิดพลาดในการประมวลผล');
+}
+
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete_batch') {
+    $raw_ids = $_POST['ids'] ?? [];
+    if (is_string($raw_ids)) $raw_ids = explode(',', $raw_ids);
+    $ids = array_values(array_filter(array_map('intval', (array)$raw_ids), fn($v) => $v > 0));
+    if (empty($ids)) { http_response_code(422); exit('กรุณาเลือกรายการที่ต้องการลบอย่างน้อย 1 รายการ'); }
+    $id_list = implode(',', $ids);
+    $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id IN ($id_list)");
+    while ($result && ($row = $result->fetch_assoc())) {
+        delete_image_paths($row['image_path']);
+        delete_image_paths($row['return_image_path']);
+        delete_image_paths($row['borrower_image_path'] ?? '');
+    }
+    $count = count($ids);
+    if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
+        resequence_ids($conn);
+        exit("ลบรายการที่เลือกเรียบร้อยแล้ว ($count รายการ)");
+    }
+    exit('ลบรายการไม่สำเร็จ');
+}
+
+if ($requestMethod === 'POST') {
     $action = $_POST['action_type'] ?? 'Borrow';
     $borrower = trim($_POST['borrower_name'] ?? '');
     $item = trim($_POST['item_name'] ?? '');
@@ -96,24 +196,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim($_POST['borrower_phone'] ?? '');
         $duration = trim($_POST['borrow_duration'] ?? '');
         $lender = trim($_POST['lender_name'] ?? '');
-        $borrow_paths = implode(',', $saved_paths); $status = 'pending';
-        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, item_name, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?)");
-        $stmt->bind_param('sssssssss', $borrower, $item, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status);
-        if ($stmt->execute()) exit('บันทึกการยืมและรูปสภาพก่อนยืมเรียบร้อยแล้ว');
+        $department = trim($_POST['department'] ?? ($_SESSION['dept_name'] ?? 'แผนกโครงข่ายสื่อสารหลัก'));
+        if ($department === '') $department = 'แผนกโครงข่ายสื่อสารหลัก';
+        $borrow_paths = implode(',', $saved_paths);
+        $status = 'pending';
+
+        // จัดการบันทึกรูปถ่ายผู้ยืม (1 รูป)
+        $borrower_image = $_POST['borrower_image'] ?? '';
+        $borrower_image_path = '';
+        if (!empty($borrower_image)) {
+            $saved_borrower = save_images([$borrower_image]);
+            if (!empty($saved_borrower)) {
+                $borrower_image_path = $saved_borrower[0];
+            }
+        }
+
+        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, item_name, department, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status, borrower_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?, ?)");
+        $stmt->bind_param('sssssssssss', $borrower, $item, $department, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status, $borrower_image_path);
+        if ($stmt->execute()) exit('บันทึกการยืมและรูปภาพเรียบร้อยแล้ว');
     }
     foreach ($saved_paths as $path) delete_image_paths($path);
     http_response_code(500); exit('บันทึกข้อมูลไม่สำเร็จ: ' . $conn->error);
 }
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+if ($requestMethod === 'GET' && isset($_GET['action'])) {
     if ($_GET['action'] === 'delete' && isset($_GET['id'])) {
-        $id = (int)$_GET['id']; $result = $conn->query("SELECT image_path, return_image_path FROM transactions WHERE id = $id");
-        if ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); }
-        exit($conn->query("DELETE FROM transactions WHERE id = $id") ? 'ลบรายการเรียบร้อยแล้ว' : 'ลบรายการไม่สำเร็จ');
+        $id = (int)$_GET['id']; $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
+        if ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        if ($conn->query("DELETE FROM transactions WHERE id = $id")) {
+            resequence_ids($conn);
+            exit('ลบรายการเรียบร้อยแล้ว');
+        }
+        exit('ลบรายการไม่สำเร็จ');
+    }
+    if ($_GET['action'] === 'delete_batch' && isset($_GET['ids'])) {
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string)$_GET['ids'])), fn($v) => $v > 0));
+        if (empty($ids)) { http_response_code(422); exit('กรุณาเลือกรายการที่ต้องการลบอย่างน้อย 1 รายการ'); }
+        $id_list = implode(',', $ids);
+        $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id IN ($id_list)");
+        while ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        $count = count($ids);
+        if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
+            resequence_ids($conn);
+            exit("ลบรายการที่เลือกเรียบร้อยแล้ว ($count รายการ)");
+        }
+        exit('ลบรายการไม่สำเร็จ');
     }
     if ($_GET['action'] === 'delete_all') {
-        $result = $conn->query('SELECT image_path, return_image_path FROM transactions');
-        while ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); }
-        exit($conn->query('DELETE FROM transactions') ? 'ลบประวัติทั้งหมดเรียบร้อยแล้ว' : 'ลบประวัติทั้งหมดไม่สำเร็จ');
+        $result = $conn->query('SELECT image_path, return_image_path, borrower_image_path FROM transactions');
+        while ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        if ($conn->query('DELETE FROM transactions')) {
+            $conn->query('ALTER TABLE transactions AUTO_INCREMENT = 1');
+            exit('ลบประวัติทั้งหมดเรียบร้อยแล้ว');
+        }
+        exit('ลบประวัติทั้งหมดไม่สำเร็จ');
     }
 }
-http_response_code(400); echo 'รูปแบบคำขอไม่ถูกต้อง';
+if ($requestMethod !== '') {
+    http_response_code(400); echo 'รูปแบบคำขอไม่ถูกต้อง';
+}
