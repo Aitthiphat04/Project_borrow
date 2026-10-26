@@ -247,6 +247,97 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
         .edit-form textarea { min-height: 54px; resize: vertical; }
         .save-edit { height: 54px; background: linear-gradient(135deg, #f9db7a, var(--gold)); color: var(--deep); }
         @media (max-width: 640px) { .edit-form { grid-template-columns: 1fr; } }
+
+        /* Department Header Card */
+        .dept-header-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #ffffff 0%, #f7f3fd 60%, #fffdf4 100%);
+            border: 2px solid #e2d4f8;
+            border-left: 7px solid var(--purple);
+            border-radius: 18px;
+            padding: 16px 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(75, 38, 131, 0.08);
+        }
+        .dept-card-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .dept-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #eee5fa, #ded0f5);
+            border: 1.5px solid #cbbaec;
+            color: var(--purple);
+            display: grid;
+            place-items: center;
+            flex: none;
+            box-shadow: 0 3px 8px rgba(75, 38, 131, 0.12);
+        }
+        .dept-card-heading {
+            font-size: .80rem;
+            font-weight: 800;
+            color: #7b6998;
+            letter-spacing: .02em;
+        }
+        .dept-card-title {
+            font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+            font-weight: 900;
+            color: var(--purple);
+            margin-top: 2px;
+            line-height: 1.25;
+        }
+        .dept-card-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .dept-tag-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 6px 14px;
+            background: #f1e7fc;
+            border: 1px solid #d4c1ee;
+            border-radius: 10px;
+        }
+        .dept-tag-badge.sys-id {
+            background: #fff8e6;
+            border-color: #ecdaa4;
+        }
+        .dept-tag-badge .tag-title {
+            font-size: .70rem;
+            font-weight: 800;
+            color: #7a6699;
+        }
+        .dept-tag-badge.sys-id .tag-title {
+            color: #926f1c;
+        }
+        .dept-tag-badge .tag-number {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--purple);
+        }
+        .dept-tag-badge.sys-id .tag-number {
+            color: #8a6411;
+        }
+        .super-view-badge {
+            padding: 7px 14px;
+            background: linear-gradient(135deg, #f9df83, #e5b328);
+            border: 1px solid #d4a318;
+            border-radius: 10px;
+            color: #2b174d;
+            font-size: .80rem;
+            font-weight: 900;
+            box-shadow: 0 2px 6px rgba(217, 172, 59, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -276,6 +367,32 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
                 </form>
             </section>
         <?php endif; ?>
+        <!-- หัวข้อสังกัดแผนก (Department Information Banner) -->
+        <section class="dept-header-card">
+            <div class="dept-card-left">
+                <div class="dept-card-icon" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <div>
+                    <div class="dept-card-heading">สังกัดแผนก / หน่วยงานเจ้าของรายการ</div>
+                    <div class="dept-card-title"><?= e($row['department'] ?: 'แผนกโครงข่ายสื่อสารหลัก') ?></div>
+                </div>
+            </div>
+            <div class="dept-card-right">
+                <div class="dept-tag-badge">
+                    <span class="tag-title">ลำดับในแผนก</span>
+                    <span class="tag-number">#<?= (int)($row['dept_seq'] ?? $row['id']) ?></span>
+                </div>
+                <div class="dept-tag-badge sys-id">
+                    <span class="tag-title">รหัสอ้างอิงระบบ</span>
+                    <span class="tag-number">#<?= (int)$row['id'] ?></span>
+                </div>
+                <?php if (!empty($currentUser['is_super'])): ?>
+                    <span class="super-view-badge">Super Admin View</span>
+                <?php endif; ?>
+            </div>
+        </section>
+
         <div class="card">
             <div class="session-grid">
                 <section class="session">
@@ -291,8 +408,14 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
                                 </div>
                             </div>
                         <?php endif; ?>
+                        <div class="item" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #faf7ff; border: 1.5px solid #dfd2f3; padding: 12px 16px; border-radius: 12px;">
+                            <div>
+                                <span class="label" style="color: var(--purple); font-weight: 800; font-size: .82rem;">สังกัดแผนก (Department)</span>
+                                <div class="value" style="font-size: 1.15rem; font-weight: 900; color: var(--purple); margin-top: 2px;"><?= e($row['department'] ?: 'แผนกโครงข่ายสื่อสารหลัก') ?></div>
+                            </div>
+                            <div style="font-size: .84rem; font-weight: 800; color: #766392; background: #ede3f9; padding: 4px 10px; border-radius: 8px;">ลำดับในแผนก: #<?= (int)($row['dept_seq'] ?? $row['id']) ?></div>
+                        </div>
                         <div class="item"><span class="label">ลำดับในแผนก</span><span class="value"><?= (int)($row['dept_seq'] ?? $row['id']) ?></span></div>
-                        <div class="item"><span class="label">แผนก</span><span class="value"><?= e($row['department'] ?: '-') ?></span></div>
                         <div class="item"><span class="label">รหัสอ้างอิงระบบ</span><span class="value">#<?= (int)$row['id'] ?></span></div>
                         <div class="item"><span class="label">ชื่อผู้ยืม</span><span class="value"><?= e($row['borrower_name']) ?></span></div>
                         <div class="item"><span class="label">เบอร์ผู้ยืม</span><span class="value"><?= e($row['borrower_phone'] ?: '-') ?></span></div>
