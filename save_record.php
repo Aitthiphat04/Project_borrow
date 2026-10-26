@@ -49,10 +49,78 @@ function save_images($images) {
     return $paths;
 }
 function delete_image_paths($value) {
-    foreach (array_filter(array_map('trim', explode(',', (string)$value))) as $path) {
-        $absolute = __DIR__ . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-        if (is_file($absolute)) unlink($absolute);
+    if (empty($value)) return 0;
+    $rawList = is_array($value) ? $value : explode(',', (string)$value);
+    $deletedCount = 0;
+    $uploadDir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads';
+
+    foreach ($rawList as $raw) {
+        $raw = trim((string)$raw);
+        if ($raw === '') continue;
+
+        $basename = basename($raw);
+        $candidates = [
+            $uploadDir . DIRECTORY_SEPARATOR . $basename,
+            __DIR__ . DIRECTORY_SEPARATOR . ltrim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $raw), '\\/'),
+            $raw
+        ];
+
+        foreach ($candidates as $filePath) {
+            if (is_file($filePath)) {
+                clearstatcache(true, $filePath);
+                if (@unlink($filePath)) {
+                    $deletedCount++;
+                    break;
+                }
+            }
+        }
     }
+    return $deletedCount;
+}
+
+/**
+ * สแกนโฟลเดอร์ uploads และลบไฟล์รูปภาพที่ไม่มีในฐานข้อมูล (Orphaned images)
+ */
+function cleanup_orphaned_images($conn) {
+    $uploadDir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads';
+    if (!is_dir($uploadDir)) return 0;
+
+    // รวบรวมชื่อไฟล์รูปภาพทั้งหมดที่ยังมีอยู่ในฐานข้อมูล transactions
+    $dbFiles = [];
+    $res = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions");
+    if ($res) {
+        while ($row = $res->fetch_assoc()) {
+            foreach (['image_path', 'return_image_path', 'borrower_image_path'] as $col) {
+                if (!empty($row[$col])) {
+                    foreach (explode(',', (string)$row[$col]) as $p) {
+                        $name = basename(trim($p));
+                        if ($name !== '') {
+                            $dbFiles[$name] = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    $deletedCount = 0;
+    $items = scandir($uploadDir);
+    if ($items) {
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..' || $item === '.gitkeep' || $item === '.gitignore') continue;
+            $fullPath = $uploadDir . DIRECTORY_SEPARATOR . $item;
+            if (!is_file($fullPath)) continue;
+
+            // หากไม่มีชื่อไฟล์นี้ในฐานข้อมูล ให้ลบทิ้งทันที
+            if (!isset($dbFiles[$item])) {
+                clearstatcache(true, $fullPath);
+                if (@unlink($fullPath)) {
+                    $deletedCount++;
+                }
+            }
+        }
+    }
+    return $deletedCount;
 }
 
 function resequence_ids($conn) {
@@ -133,6 +201,28 @@ if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'approve_extension
     exit('เกิดข้อผิดพลาดในการประมวลผล');
 }
 
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'cleanup_orphans') {
+    $cleaned = cleanup_orphaned_images($conn);
+    exit("ล้างไฟล์รูปภาพตกค้างในระบบเรียบร้อยแล้ว ($cleaned ไฟล์)");
+}
+
+if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id < 1) { http_response_code(422); exit('รหัสรายการไม่ถูกต้อง'); }
+    $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
+    if ($result && ($row = $result->fetch_assoc())) {
+        delete_image_paths($row['image_path']);
+        delete_image_paths($row['return_image_path']);
+        delete_image_paths($row['borrower_image_path'] ?? '');
+    }
+    if ($conn->query("DELETE FROM transactions WHERE id = $id")) {
+        resequence_ids($conn);
+        cleanup_orphaned_images($conn);
+        exit('ลบรายการและไฟล์รูปภาพเรียบร้อยแล้ว');
+    }
+    exit('ลบรายการไม่สำเร็จ');
+}
+
 if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete_batch') {
     $raw_ids = $_POST['ids'] ?? [];
     if (is_string($raw_ids)) $raw_ids = explode(',', $raw_ids);
@@ -148,7 +238,8 @@ if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete_batch') {
     $count = count($ids);
     if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
         resequence_ids($conn);
-        exit("ลบรายการที่เลือกเรียบร้อยแล้ว ($count รายการ)");
+        cleanup_orphaned_images($conn);
+        exit("ลบรายการที่เลือกและไฟล์รูปภาพเรียบร้อยแล้ว ($count รายการ)");
     }
     exit('ลบรายการไม่สำเร็จ');
 }
@@ -219,12 +310,22 @@ if ($requestMethod === 'POST') {
     http_response_code(500); exit('บันทึกข้อมูลไม่สำเร็จ: ' . $conn->error);
 }
 if ($requestMethod === 'GET' && isset($_GET['action'])) {
+    if ($_GET['action'] === 'cleanup_orphans') {
+        $cleaned = cleanup_orphaned_images($conn);
+        exit("ล้างไฟล์รูปภาพตกค้างในระบบเรียบร้อยแล้ว ($cleaned ไฟล์)");
+    }
     if ($_GET['action'] === 'delete' && isset($_GET['id'])) {
-        $id = (int)$_GET['id']; $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
-        if ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        $id = (int)$_GET['id'];
+        $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
+        if ($result && ($row = $result->fetch_assoc())) {
+            delete_image_paths($row['image_path']);
+            delete_image_paths($row['return_image_path']);
+            delete_image_paths($row['borrower_image_path'] ?? '');
+        }
         if ($conn->query("DELETE FROM transactions WHERE id = $id")) {
             resequence_ids($conn);
-            exit('ลบรายการเรียบร้อยแล้ว');
+            cleanup_orphaned_images($conn);
+            exit('ลบรายการและไฟล์รูปภาพเรียบร้อยแล้ว');
         }
         exit('ลบรายการไม่สำเร็จ');
     }
@@ -233,20 +334,30 @@ if ($requestMethod === 'GET' && isset($_GET['action'])) {
         if (empty($ids)) { http_response_code(422); exit('กรุณาเลือกรายการที่ต้องการลบอย่างน้อย 1 รายการ'); }
         $id_list = implode(',', $ids);
         $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id IN ($id_list)");
-        while ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        while ($result && ($row = $result->fetch_assoc())) {
+            delete_image_paths($row['image_path']);
+            delete_image_paths($row['return_image_path']);
+            delete_image_paths($row['borrower_image_path'] ?? '');
+        }
         $count = count($ids);
         if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
             resequence_ids($conn);
-            exit("ลบรายการที่เลือกเรียบร้อยแล้ว ($count รายการ)");
+            cleanup_orphaned_images($conn);
+            exit("ลบรายการที่เลือกและไฟล์รูปภาพเรียบร้อยแล้ว ($count รายการ)");
         }
         exit('ลบรายการไม่สำเร็จ');
     }
     if ($_GET['action'] === 'delete_all') {
         $result = $conn->query('SELECT image_path, return_image_path, borrower_image_path FROM transactions');
-        while ($result && ($row = $result->fetch_assoc())) { delete_image_paths($row['image_path']); delete_image_paths($row['return_image_path']); delete_image_paths($row['borrower_image_path'] ?? ''); }
+        while ($result && ($row = $result->fetch_assoc())) {
+            delete_image_paths($row['image_path']);
+            delete_image_paths($row['return_image_path']);
+            delete_image_paths($row['borrower_image_path'] ?? '');
+        }
         if ($conn->query('DELETE FROM transactions')) {
             $conn->query('ALTER TABLE transactions AUTO_INCREMENT = 1');
-            exit('ลบประวัติทั้งหมดเรียบร้อยแล้ว');
+            cleanup_orphaned_images($conn);
+            exit('ลบประวัติและไฟล์รูปภาพทั้งหมดเรียบร้อยแล้ว');
         }
         exit('ลบประวัติทั้งหมดไม่สำเร็จ');
     }
