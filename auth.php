@@ -97,7 +97,7 @@ function register_borrower($conn, $dept_key, $full_name, $username, $password, $
         return ['success' => false, 'error' => 'กรุณาเลือกสังกัดแผนกที่ถูกต้อง'];
     }
     if (empty($username)) {
-        return ['success' => false, 'error' => 'กรุณากรอกชื่อผู้ใช้งานหรือรหัสพนักงาน'];
+        return ['success' => false, 'error' => 'กรุณากรอกชื่อผู้ใช้งาน'];
     }
     if (mb_strlen($username) < 3 || mb_strlen($username) > 40) {
         return ['success' => false, 'error' => 'ชื่อผู้ใช้งานต้องมีความยาวระหว่าง 3-40 ตัวอักษร'];
@@ -123,7 +123,7 @@ function register_borrower($conn, $dept_key, $full_name, $username, $password, $
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res && $res->num_rows > 0) {
-        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่นหรือรหัสพนักงานของคุณ'];
+        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่น'];
     }
 
     // แฮชรหัสผ่าน

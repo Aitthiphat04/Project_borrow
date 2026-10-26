@@ -622,9 +622,9 @@ if (!function_exists('e')) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="username">
-                            <span>3. ชื่อผู้ใช้ / รหัสพนักงาน<span class="req">*</span></span>
+                            <span>3. ชื่อผู้ใช้งาน (Username)<span class="req">*</span></span>
                         </label>
-                        <input type="text" name="username" id="username" class="form-control" placeholder="เช่น somchai หรือ 504123" required value="<?= e($_POST['username'] ?? '') ?>" autocomplete="username" pattern="[a-zA-Z0-9_\-\.]{3,40}" title="ภาษาอังกฤษ ตัวเลข ขีดล่าง ขีดกลาง หรือจุด ความยาว 3-40 ตัวอักษร">
+                        <input type="text" name="username" id="username" class="form-control" placeholder="เช่น somchai หรือ somchai_j" required value="<?= e($_POST['username'] ?? '') ?>" autocomplete="username" pattern="[a-zA-Z0-9_\-\.]{3,40}" title="ภาษาอังกฤษ ตัวเลข ขีดล่าง ขีดกลาง หรือจุด ความยาว 3-40 ตัวอักษร">
                     </div>
                     <div class="form-group">
                         <label for="phone">
