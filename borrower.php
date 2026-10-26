@@ -574,7 +574,7 @@ if (isset($_GET['ajax_table'])) {
             <div class="brand">
                 <img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA">
                 <div>
-                    <div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b> <span class="dept-badge"><?= e($currentUser['dept_name']) ?></span> <span class="user-badge"><?= e($currentUser['full_name']) ?> (<?= e($currentUser['role_title']) ?>)</span></div>
+                    <div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b></div>
                     <h1>ประวัติการยืม-คืน</h1>
                     <p class="subtitle">ระบบสำหรับผู้ยืม (<?= e($currentUser['dept_name']) ?>)</p>
                 </div>

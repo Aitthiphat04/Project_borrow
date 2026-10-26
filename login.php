@@ -481,7 +481,7 @@ if (!function_exists('e')) {
             </div>
 
             <button type="submit" class="btn-submit-login" id="submitLoginBtn">
-                เข้าสู่หน้างานตามบทบาท
+                เข้าสู่ระบบ
             </button>
         </form>
 
@@ -577,9 +577,9 @@ function onUserChange() {
         rolePreviewBadge.textContent = roleTitle;
         rolePreviewBadge.className = 'role-preview-badge ' + role;
 
-        let targetPageName = 'หน้าผู้ยืม (borrower.php)';
-        if (role === 'lender') targetPageName = 'หน้าผู้ให้ยืม (lender.php)';
-        else if (role === 'admin' || role === 'super_admin') targetPageName = 'หน้าผู้ดูแลระบบ (history.php)';
+        let targetPageName = 'หน้าผู้ยืม';
+        if (role === 'lender') targetPageName = 'หน้าผู้ให้ยืม';
+        else if (role === 'admin' || role === 'super_admin') targetPageName = 'หน้าผู้ดูแลระบบ';
 
         submitLoginBtn.textContent = `เข้าสู่ระบบ → ${targetPageName}`;
     }
