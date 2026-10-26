@@ -93,6 +93,9 @@ function register_borrower($conn, $dept_key, $full_name, $username = '', $passwo
     if (empty($full_name)) {
         return ['success' => false, 'error' => 'กรุณากรอกชื่อ-นามสกุล'];
     }
+    if (empty($phone)) {
+        return ['success' => false, 'error' => 'กรุณากรอกเบอร์โทรศัพท์ติดต่อ'];
+    }
     if (empty($dept_key) || !isset(DEPARTMENTS[$dept_key])) {
         return ['success' => false, 'error' => 'กรุณาเลือกสังกัดแผนกที่ถูกต้อง'];
     }

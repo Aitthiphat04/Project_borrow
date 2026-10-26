@@ -31,7 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $confirmPassword = (string)($_POST['confirm_password'] ?? '');
     $autoLogin = !empty($_POST['auto_login']);
 
-    if ($password !== $confirmPassword) {
+    if (empty($phone)) {
+        $errorMessage = 'กรุณากรอกเบอร์โทรศัพท์ติดต่อ';
+    } elseif ($password !== $confirmPassword) {
         $errorMessage = 'รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง';
     } else {
         $regResult = register_borrower($conn, $deptKey, $fullName, '', $password, $phone);
@@ -609,10 +611,9 @@ if (!function_exists('e')) {
                 <!-- 3. เบอร์โทรศัพท์ติดต่อ -->
                 <div class="form-group">
                     <label for="phone">
-                        <span>3. เบอร์โทรศัพท์ติดต่อ</span>
-                        <span class="hint">ถ้ามี</span>
+                        <span>3. เบอร์โทรศัพท์ติดต่อ<span class="req">*</span></span>
                     </label>
-                    <input type="tel" name="phone" id="phone" class="form-control" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
+                    <input type="tel" name="phone" id="phone" class="form-control" required value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
                 </div>
 
                 <!-- 4. รหัสผ่าน และ ยืนยันรหัสผ่าน -->
@@ -703,10 +704,18 @@ document.querySelectorAll('.password-toggle-btn').forEach(btn => {
     });
 });
 
-// ตรวจสอบความถูกต้องของรหัสผ่านก่อนส่ง
+// ตรวจสอบความถูกต้องก่อนส่ง
 const regForm = document.getElementById('registerForm');
 if (regForm) {
     regForm.addEventListener('submit', (e) => {
+        const phone = document.getElementById('phone').value.trim();
+        if (!phone) {
+            e.preventDefault();
+            alert('กรุณากรอกเบอร์โทรศัพท์ติดต่อ');
+            document.getElementById('phone').focus();
+            return;
+        }
+
         const p1 = document.getElementById('password').value;
         const p2 = document.getElementById('confirmPassword').value;
 
