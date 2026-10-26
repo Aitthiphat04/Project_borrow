@@ -10,6 +10,7 @@ $deptSql = get_department_sql_condition($conn);
 $columns = [
     'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
     'dept_seq' => "INT NOT NULL DEFAULT 1",
+    'borrower_username' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -38,7 +39,37 @@ $sortBy = array_key_exists($sortBy, $sortableColumns) ? $sortBy : 'id';
 $nextSort = $sort === 'asc' ? 'desc' : 'asc';
 $sortIcon = $sort === 'asc' ? '↑' : '↓';
 
-$result = $conn->query("SELECT * FROM transactions WHERE action_type='Borrow' $deptSql ORDER BY `" . $sortableColumns[$sortBy] . "` " . strtoupper($sort) . ", id DESC");
+// กรองให้ผู้ยืมเห็นเฉพาะรายการของตนเอง
+$borrowerFilterSql = '';
+if ($currentUser['role'] === 'borrower') {
+    $cFullName = trim($currentUser['full_name'] ?? '');
+    $cUsername = trim($currentUser['username'] ?? '');
+    $cPhone = trim($currentUser['phone'] ?? '');
+
+    $orConditions = [];
+    if ($cUsername !== '') {
+        $escUsername = $conn->real_escape_string($cUsername);
+        $orConditions[] = "borrower_username = '$escUsername'";
+        $orConditions[] = "TRIM(borrower_name) = '$escUsername'";
+    }
+    if ($cFullName !== '') {
+        $escFullName = $conn->real_escape_string($cFullName);
+        $orConditions[] = "TRIM(borrower_name) = '$escFullName'";
+        $orConditions[] = "REPLACE(TRIM(borrower_name), ' ', '') = REPLACE('$escFullName', ' ', '')";
+    }
+    if ($cPhone !== '') {
+        $escPhone = $conn->real_escape_string($cPhone);
+        $orConditions[] = "(borrower_phone IS NOT NULL AND borrower_phone != '' AND borrower_phone = '$escPhone')";
+    }
+
+    if (!empty($orConditions)) {
+        $borrowerFilterSql = " AND (" . implode(" OR ", array_unique($orConditions)) . ") ";
+    } else {
+        $borrowerFilterSql = " AND 1=0 ";
+    }
+}
+
+$result = $conn->query("SELECT * FROM transactions WHERE action_type='Borrow' $deptSql $borrowerFilterSql ORDER BY `" . $sortableColumns[$sortBy] . "` " . strtoupper($sort) . ", id DESC");
 
 if (!function_exists('first_image')) {
     function first_image($value) {
@@ -576,7 +607,7 @@ if (isset($_GET['ajax_table'])) {
                 <div>
                     <div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b></div>
                     <h1>ประวัติการยืม-คืน</h1>
-                    <p class="subtitle">ระบบสำหรับผู้ยืม (<?= e($currentUser['dept_name']) ?>)</p>
+                    <p class="subtitle">ระบบสำหรับผู้ยืม: <b><?= e($currentUser['full_name']) ?></b> (<?= e($currentUser['dept_name']) ?>)</p>
                 </div>
             </div>
         </div>

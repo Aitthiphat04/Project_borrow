@@ -72,6 +72,25 @@ if (!$currentUser['is_super'] && !empty($row['department']) && $row['department'
     die('ท่านไม่มีสิทธิ์เข้าถึงข้อมูลของแผนกอื่น');
 }
 
+if ($currentUser['role'] === 'borrower') {
+    $uName = trim($currentUser['full_name'] ?? '');
+    $uUser = trim($currentUser['username'] ?? '');
+    $uPhone = trim($currentUser['phone'] ?? '');
+    $bName = trim($row['borrower_name'] ?? '');
+    $bUser = trim($row['borrower_username'] ?? '');
+    $bPhone = trim($row['borrower_phone'] ?? '');
+
+    $isOwner = ($uUser !== '' && $bUser === $uUser)
+        || ($uName !== '' && $bName === $uName)
+        || ($uName !== '' && preg_replace('/\s+/u', '', $bName) === preg_replace('/\s+/u', '', $uName))
+        || ($uPhone !== '' && $bPhone === $uPhone)
+        || ($uUser !== '' && $bName === $uUser);
+
+    if (!$isOwner) {
+        die('ท่านไม่มีสิทธิ์เข้าถึงรายการยืมของผู้ใช้อื่น');
+    }
+}
+
 $isEdit = isset($_GET['edit']) && $_GET['edit'] === '1' && in_array($currentUser['role'], ['admin', 'super_admin'], true);
 $borrowImages = images_array($row['image_path']);
 $returnImages = images_array($row['return_image_path']);

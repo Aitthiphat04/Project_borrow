@@ -13,6 +13,7 @@ function ensure_transaction_columns($conn) {
     $columns = [
         'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
         'dept_seq' => "INT NOT NULL DEFAULT 1",
+        'borrower_username' => "VARCHAR(100) NOT NULL DEFAULT ''",
         'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
         'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
         'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -186,6 +187,21 @@ if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'request_extension
         http_response_code(422);
         exit('กรุณาระบุจำนวนวันที่ต้องการขอต่อเวลาอย่างน้อย 1 วัน');
     }
+
+    if (!empty($_SESSION['user_role']) && $_SESSION['user_role'] === 'borrower') {
+        $uName = trim($_SESSION['full_name'] ?? '');
+        $uUser = trim($_SESSION['username'] ?? '');
+        $uPhone = trim($_SESSION['phone'] ?? '');
+        $chk = $conn->prepare("SELECT id FROM transactions WHERE id = ? AND (borrower_username = ? OR TRIM(borrower_name) = ? OR REPLACE(TRIM(borrower_name), ' ', '') = REPLACE(?, ' ', '') OR (borrower_phone != '' AND borrower_phone = ?))");
+        $chk->bind_param('issss', $id, $uUser, $uName, $uName, $uPhone);
+        $chk->execute();
+        $chkRes = $chk->get_result();
+        if (!$chkRes || $chkRes->num_rows === 0) {
+            http_response_code(403);
+            exit('คุณสามารถขอต่อเวลาได้เฉพาะรายการของตนเองเท่านั้น');
+        }
+        $chk->close();
+    }
     $stmt = $conn->prepare("UPDATE transactions SET extension_status = 'pending', extension_days = ?, extension_reason = ?, extension_request_time = NOW() WHERE id = ? AND return_time IS NULL");
     $stmt->bind_param('isi', $days, $reason, $id);
     if ($stmt->execute() && $stmt->affected_rows >= 0) {
@@ -338,8 +354,21 @@ if ($requestMethod === 'POST') {
         }
         $seqStmt->close();
 
-        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, item_name, department, dept_seq, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status, borrower_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?, ?)");
-        $stmt->bind_param('sssissssssss', $borrower, $item, $department, $dept_seq, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status, $borrower_image_path);
+        // ค้นหาหรือบันทึก username ของผู้ยืม
+        $borrower_username = trim($_POST['borrower_username'] ?? '');
+        if ($borrower_username === '') {
+            $uLookup = $conn->prepare("SELECT username FROM department_users WHERE (TRIM(full_name) = ? OR (phone != '' AND phone = ?)) LIMIT 1");
+            $uLookup->bind_param('ss', $borrower, $phone);
+            $uLookup->execute();
+            $uLookupRes = $uLookup->get_result();
+            if ($uLookupRes && ($uRow = $uLookupRes->fetch_assoc())) {
+                $borrower_username = $uRow['username'];
+            }
+            $uLookup->close();
+        }
+
+        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, borrower_username, item_name, department, dept_seq, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status, borrower_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?, ?)");
+        $stmt->bind_param('ssssissssssss', $borrower, $borrower_username, $item, $department, $dept_seq, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status, $borrower_image_path);
         if ($stmt->execute()) exit('บันทึกการยืมและรูปภาพเรียบร้อยแล้ว');
     }
     foreach ($saved_paths as $path) delete_image_paths($path);
