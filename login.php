@@ -43,8 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-function e($val) {
-    return htmlspecialchars((string)$val, ENT_QUOTES, 'UTF-8');
+if (!function_exists('e')) {
+    function e($val) {
+        return htmlspecialchars((string)$val, ENT_QUOTES, 'UTF-8');
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -296,6 +298,64 @@ function e($val) {
             text-align: center;
         }
 
+        .auth-success-alert {
+            background: #e8f7f0;
+            border: 1px solid #b7e5ce;
+            color: #177b58;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: .86rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .register-prompt-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: linear-gradient(135deg, #fdf8eb 0%, #fffdf8 100%);
+            border: 1px solid #fae8a6;
+            border-left: 4px solid var(--gold);
+            padding: 12px 14px;
+            border-radius: 14px;
+            margin-top: 18px;
+        }
+        .register-prompt-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .register-prompt-title {
+            font-size: .86rem;
+            font-weight: 800;
+            color: #795200;
+        }
+        .register-prompt-sub {
+            font-size: .78rem;
+            color: #8d7030;
+        }
+        .btn-register-link {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f9db7a, var(--gold));
+            color: var(--deep);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: .84rem;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 3px 10px rgba(217, 172, 59, 0.28);
+            transition: transform .18s, filter .18s;
+        }
+        .btn-register-link:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
         /* ตารางสรุปรายชื่อและบทบาทที่กำหนดไว้ */
         .role-reference-card {
             background: rgba(255, 255, 255, 0.9);
@@ -376,6 +436,12 @@ function e($val) {
         <h2 class="auth-card-title">เข้าสู่ระบบการทำงาน</h2>
         <p class="auth-card-sub">เลือกแผนกและชื่อผู้ใช้งาน ระบบจะนำเข้าสู่หน้างานตามบทบาททันที</p>
 
+        <?php if (!empty($_GET['registered'])): ?>
+            <div class="auth-success-alert">
+                ลงทะเบียนผู้ยืมอุปกรณ์สำเร็จแล้ว กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน
+            </div>
+        <?php endif; ?>
+
         <?php if ($errorMessage): ?>
             <div class="auth-error"><?= e($errorMessage) ?></div>
         <?php endif; ?>
@@ -418,6 +484,20 @@ function e($val) {
                 เข้าสู่หน้างานตามบทบาท
             </button>
         </form>
+
+        <!-- กล่องทางลัดไปหน้าลงทะเบียนผู้ยืม -->
+        <div class="register-prompt-card">
+            <div class="register-prompt-info">
+                <span class="register-prompt-title">ยังไม่มีบัญชีผู้ยืมอุปกรณ์?</span>
+                <span class="register-prompt-sub">ลงทะเบียนสร้างบัญชีสำหรับผู้ยืมของแผนกคุณได้ทันที</span>
+            </div>
+            <a href="register.php" class="btn-register-link" id="gotoRegisterLink">
+                <span>ลงทะเบียนผู้ยืมใหม่</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </a>
+        </div>
     </div>
 
     <!-- ข้อมูลแนะนำรายชื่อและบทบาทสำหรับทดสอบ -->
@@ -502,11 +582,44 @@ function onUserChange() {
     }
 }
 
-deptSelect.addEventListener('change', updateUsersDropdown);
+deptSelect.addEventListener('change', () => {
+    updateUsersDropdown();
+    const gotoLink = document.getElementById('gotoRegisterLink');
+    if (gotoLink) {
+        const val = deptSelect.value;
+        if (val !== 'super_admin') {
+            gotoLink.href = 'register.php?dept=' + encodeURIComponent(val);
+        } else {
+            gotoLink.href = 'register.php';
+        }
+    }
+});
 userSelect.addEventListener('change', onUserChange);
 
 // เริ่มต้นโหลดตัวเลือกครั้งแรก
 updateUsersDropdown();
+
+// ตรวจสอบ Query parameters เพื่อเลือกอัตโนมัติ (เช่น หลังลงทะเบียนเสร็จ)
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('dept')) {
+    const deptVal = urlParams.get('dept');
+    if (deptSelect.querySelector(`option[value="${deptVal}"]`)) {
+        deptSelect.value = deptVal;
+        updateUsersDropdown();
+    }
+}
+if (urlParams.has('user')) {
+    const userVal = urlParams.get('user');
+    for (let i = 0; i < userSelect.options.length; i++) {
+        if (userSelect.options[i].value === userVal) {
+            userSelect.selectedIndex = i;
+            onUserChange();
+            passwordInput.value = '';
+            passwordInput.focus();
+            break;
+        }
+    }
+}
 </script>
 
 </body>

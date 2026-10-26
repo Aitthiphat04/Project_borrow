@@ -586,6 +586,13 @@ if (isset($_GET['ajax_table'])) {
         </div>
     </div>
 
+    <?php if (!empty($_GET['registered'])): ?>
+        <div style="background:linear-gradient(135deg, #e8f7f0, #f0fbf5);border:1px solid #b7e5ce;border-left:4px solid #177b58;padding:12px 18px;border-radius:12px;margin-bottom:16px;color:#177b58;font-weight:700;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 10px rgba(23,123,88,0.08);">
+            <span>ยินดีต้อนรับคุณ <?= e($currentUser['full_name']) ?>! ลงทะเบียนเข้าสู่ระบบผู้ยืมอุปกรณ์เรียบร้อยแล้ว</span>
+            <button type="button" onclick="this.parentElement.remove()" style="border:0;background:transparent;color:#177b58;font-size:20px;cursor:pointer;font-weight:800;line-height:1;">&times;</button>
+        </div>
+    <?php endif; ?>
+
     <div class="filter-toolbar">
         <div class="filter-left">
             <div class="filter-label-wrap">

@@ -72,6 +72,97 @@ function get_all_users_grouped($conn) {
     return $result;
 }
 
+// ตรวจสอบและสร้างคอลัมน์ phone ใน department_users หากยังไม่มี
+if (isset($conn) && $conn instanceof mysqli) {
+    $chkPhoneCol = $conn->query("SHOW COLUMNS FROM department_users LIKE 'phone'");
+    if ($chkPhoneCol && !$chkPhoneCol->num_rows) {
+        @$conn->query("ALTER TABLE department_users ADD COLUMN `phone` VARCHAR(30) NULL AFTER `full_name`");
+    }
+}
+
+/**
+ * สมัครสมาชิกลงทะเบียนผู้ยืมอุปกรณ์ (Register Borrower)
+ */
+function register_borrower($conn, $dept_key, $full_name, $username, $password, $phone = '') {
+    $full_name = trim((string)$full_name);
+    $username = trim((string)$username);
+    $password = (string)$password;
+    $phone = trim((string)$phone);
+    $dept_key = trim((string)$dept_key);
+
+    if (empty($full_name)) {
+        return ['success' => false, 'error' => 'กรุณากรอกชื่อ-นามสกุล'];
+    }
+    if (empty($dept_key) || !isset(DEPARTMENTS[$dept_key])) {
+        return ['success' => false, 'error' => 'กรุณาเลือกสังกัดแผนกที่ถูกต้อง'];
+    }
+    if (empty($username)) {
+        return ['success' => false, 'error' => 'กรุณากรอกชื่อผู้ใช้งานหรือรหัสพนักงาน'];
+    }
+    if (mb_strlen($username) < 3 || mb_strlen($username) > 40) {
+        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานต้องมีความยาวระหว่าง 3-40 ตัวอักษร'];
+    }
+    if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $username)) {
+        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานสามารถใช้ได้เฉพาะตัวอักษรภาษาอังกฤษ ตัวเลข ขีดล่าง (_) ขีดกลาง (-) หรือจุด (.)'];
+    }
+    if (empty($password)) {
+        return ['success' => false, 'error' => 'กรุณากรอกรหัสผ่าน'];
+    }
+    if (mb_strlen($password) < 4) {
+        return ['success' => false, 'error' => 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร'];
+    }
+
+    $dept_name = DEPARTMENTS[$dept_key]['name'];
+
+    // ตรวจสอบชื่อผู้ใช้ซ้ำ
+    $stmt = $conn->prepare("SELECT id FROM department_users WHERE username = ? LIMIT 1");
+    if (!$stmt) {
+        return ['success' => false, 'error' => 'ข้อผิดพลาดระบบฐานข้อมูล'];
+    }
+    $stmt->bind_param('s', $username);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res && $res->num_rows > 0) {
+        return ['success' => false, 'error' => 'ชื่อผู้ใช้งานนี้มีอยู่ในระบบแล้ว กรุณาใช้ชื่ออื่นหรือรหัสพนักงานของคุณ'];
+    }
+
+    // แฮชรหัสผ่าน
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // ตรวจสอบคอลัมน์ phone
+    $chkPhone = $conn->query("SHOW COLUMNS FROM department_users LIKE 'phone'");
+    $hasPhone = ($chkPhone && $chkPhone->num_rows > 0);
+
+    if ($hasPhone) {
+        $ins = $conn->prepare("INSERT INTO department_users (username, full_name, phone, password, dept_key, dept_name, role) VALUES (?, ?, ?, ?, ?, ?, 'borrower')");
+        $ins->bind_param('ssssss', $username, $full_name, $phone, $hashedPassword, $dept_key, $dept_name);
+    } else {
+        $ins = $conn->prepare("INSERT INTO department_users (username, full_name, password, dept_key, dept_name, role) VALUES (?, ?, ?, ?, ?, 'borrower')");
+        $ins->bind_param('sssss', $username, $full_name, $hashedPassword, $dept_key, $dept_name);
+    }
+
+    if ($ins && $ins->execute()) {
+        $newId = (int)$ins->insert_id;
+        $user = [
+            'id' => $newId,
+            'username' => $username,
+            'full_name' => $full_name,
+            'phone' => $phone,
+            'dept_key' => $dept_key,
+            'dept_name' => $dept_name,
+            'role' => 'borrower',
+            'role_title' => role_thai_name('borrower')
+        ];
+
+        return [
+            'success' => true,
+            'user' => $user
+        ];
+    }
+
+    return ['success' => false, 'error' => 'ไม่สามารถบันทึกข้อมูลการลงทะเบียนได้ กรุณาลองใหม่อีกครั้ง'];
+}
+
 /**
  * ตรวจสอบชื่อผู้ใช้ รหัสผ่าน และแผนก เพื่อเข้าสู่ระบบ
  */
@@ -80,7 +171,11 @@ function login_user($conn, $dept_key, $username, $password) {
         return ['success' => false, 'error' => 'กรุณากรอกแผนก ชื่อผู้ใช้งาน และรหัสผ่านให้ครบถ้วน'];
     }
 
-    $stmt = $conn->prepare("SELECT id, username, full_name, password, dept_key, dept_name, role FROM department_users WHERE username = ? LIMIT 1");
+    $stmt = $conn->prepare("SELECT id, username, full_name, phone, password, dept_key, dept_name, role FROM department_users WHERE username = ? LIMIT 1");
+    if (!$stmt) {
+        // กรณีไม่มี phone ใน schema เก่า
+        $stmt = $conn->prepare("SELECT id, username, full_name, password, dept_key, dept_name, role FROM department_users WHERE username = ? LIMIT 1");
+    }
     if (!$stmt) {
         return ['success' => false, 'error' => 'ข้อผิดพลาดระบบฐานข้อมูล'];
     }
@@ -103,6 +198,7 @@ function login_user($conn, $dept_key, $username, $password) {
             $_SESSION['user_id'] = (int)$user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['phone'] = $user['phone'] ?? '';
             $_SESSION['dept_key'] = $user['dept_key'];
             $_SESSION['dept_name'] = $user['dept_name'];
             $_SESSION['user_role'] = $user['role'];
@@ -136,6 +232,7 @@ function logout_user() {
         $_SESSION['user_id'],
         $_SESSION['username'],
         $_SESSION['full_name'],
+        $_SESSION['phone'],
         $_SESSION['dept_key'],
         $_SESSION['dept_name'],
         $_SESSION['user_role'],
@@ -152,6 +249,7 @@ function current_user() {
         'id' => $_SESSION['user_id'] ?? 0,
         'username' => $_SESSION['username'] ?? '',
         'full_name' => $_SESSION['full_name'] ?? '',
+        'phone' => $_SESSION['phone'] ?? '',
         'dept_key' => $_SESSION['dept_key'] ?? '',
         'dept_name' => $_SESSION['dept_name'] ?? '',
         'name' => $_SESSION['dept_name'] ?? '',
