@@ -568,19 +568,6 @@ if (!function_exists('e')) {
             <h2 class="auth-card-title">ลงทะเบียนผู้ยืมอุปกรณ์ใหม่</h2>
             <p class="auth-card-sub">กรอกข้อมูลเพื่อสร้างบัญชีผู้ยืมสำหรับสังกัดแผนกของคุณ</p>
 
-            <!-- แถบระบุบทบาท -->
-            <div class="role-notice-banner">
-                <div class="role-notice-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </div>
-                <div class="role-notice-content">
-                    <div class="role-notice-title">สิทธิ์การเข้าใช้งาน: ผู้ยืมอุปกรณ์ (Borrower)</div>
-                    <div class="role-notice-desc">บัญชีนี้ได้รับสิทธิ์ในการทำรายการขอยืมอุปกรณ์ ติดตามสถานะ และขอต่อเวลาคืนอุปกรณ์ตามสังกัดแผนก</div>
-                </div>
-            </div>
 
             <?php if ($errorMessage): ?>
                 <div class="auth-error">
