@@ -581,7 +581,6 @@ if (isset($_GET['ajax_table'])) {
             </div>
         </div>
         <div class="actions">
-            <button type="button" class="borrow-open" id="refreshBtn" onclick="pollBorrowerData(true)">อัปเดตข้อมูล</button>
             <a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
         </div>
     </div>
