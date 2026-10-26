@@ -8,6 +8,8 @@ $deptSql = get_department_sql_condition($conn);
 
 // ตรวจสอบและสร้างคอลัมน์ที่จำเป็นอัตโนมัติ
 $columns = [
+    'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
+    'dept_seq' => "INT NOT NULL DEFAULT 1",
     'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -31,7 +33,7 @@ foreach ($columns as $name => $definition) {
 $sort = strtolower($_GET['sort'] ?? 'desc');
 $sort = in_array($sort, ['asc', 'desc'], true) ? $sort : 'desc';
 $sortBy = strtolower($_GET['sort_by'] ?? 'id');
-$sortableColumns = ['id' => 'id', 'borrow' => 'record_time', 'return' => 'return_time'];
+$sortableColumns = ['id' => 'dept_seq', 'borrow' => 'record_time', 'return' => 'return_time'];
 $sortBy = array_key_exists($sortBy, $sortableColumns) ? $sortBy : 'id';
 $nextSort = $sort === 'asc' ? 'desc' : 'asc';
 $sortIcon = $sort === 'asc' ? '↑' : '↓';
@@ -55,6 +57,7 @@ if (!function_exists('e')) {
     }
 }
 
+if (!function_exists('render_borrower_rows')) {
 function render_borrower_rows($result) {
     if ($result && $result->num_rows) {
         while ($row = $result->fetch_assoc()) {
@@ -90,6 +93,7 @@ function render_borrower_rows($result) {
             ], JSON_UNESCAPED_UNICODE));
 
             $searchCorpus = mb_strtolower(implode(' ', [
+                $row['dept_seq'] ?? $row['id'],
                 $row['id'],
                 $row['borrower_name'],
                 $row['borrower_phone'] ?: '',
@@ -105,7 +109,7 @@ function render_borrower_rows($result) {
             ]));
             ?>
             <tr class="transaction-row" data-id="<?= (int)$row['id'] ?>" data-status="<?= e($status) ?>" data-returned="<?= $row['return_time'] ? '1' : '0' ?>" data-extension="<?= e($extStatus) ?>" data-search="<?= e($searchCorpus) ?>">
-                <td class="col-seq"><?= (int)$row['id'] ?></td>
+                <td class="col-seq"><?= (int)($row['dept_seq'] ?? $row['id']) ?></td>
                 <td>
                     <div class="borrower-cell">
                         <?php if (!empty($row['borrower_image_path'])): ?>
@@ -189,6 +193,7 @@ function render_borrower_rows($result) {
     } else {
         echo '<tr class="empty-row"><td colspan="10">ยังไม่มีประวัติการยืม</td></tr>';
     }
+}
 }
 
 if (isset($_GET['ajax_table'])) {

@@ -12,6 +12,7 @@ function column_exists($conn, $column) {
 function ensure_transaction_columns($conn) {
     $columns = [
         'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
+        'dept_seq' => "INT NOT NULL DEFAULT 1",
         'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
         'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
         'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -123,10 +124,33 @@ function cleanup_orphaned_images($conn) {
     return $deletedCount;
 }
 
+function resequence_dept_seq($conn, $department = null) {
+    $conn->query("UPDATE transactions SET department = 'แผนกโครงข่ายสื่อสารหลัก' WHERE department IS NULL OR TRIM(department) = ''");
+    $departments = [];
+    if ($department !== null && trim($department) !== '') {
+        $departments[] = trim($department);
+    } else {
+        $res = $conn->query("SELECT DISTINCT department FROM transactions");
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                if (!empty($row['department'])) {
+                    $departments[] = $row['department'];
+                }
+            }
+        }
+    }
+    foreach ($departments as $dept) {
+        $deptEsc = $conn->real_escape_string($dept);
+        $conn->query("SET @dept_num := 0");
+        $conn->query("UPDATE transactions SET dept_seq = (@dept_num := @dept_num + 1) WHERE department = '$deptEsc' ORDER BY id ASC");
+    }
+}
+
 function resequence_ids($conn) {
     $conn->query("SET @num := 0");
     $conn->query("UPDATE transactions SET id = (@num := @num + 1) ORDER BY id ASC");
     $conn->query("ALTER TABLE transactions AUTO_INCREMENT = 1");
+    resequence_dept_seq($conn);
 }
 ensure_transaction_columns($conn);
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
@@ -302,8 +326,20 @@ if ($requestMethod === 'POST') {
             }
         }
 
-        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, item_name, department, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status, borrower_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?, ?)");
-        $stmt->bind_param('sssssssssss', $borrower, $item, $department, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status, $borrower_image_path);
+        // คำนวณลำดับประจำแผนก (dept_seq)
+        $seqStmt = $conn->prepare("SELECT COALESCE(MAX(dept_seq), 0) + 1 AS next_seq FROM transactions WHERE department = ?");
+        $seqStmt->bind_param('s', $department);
+        $seqStmt->execute();
+        $seqRes = $seqStmt->get_result();
+        $dept_seq = 1;
+        if ($seqRes && ($sRow = $seqRes->fetch_assoc())) {
+            $dept_seq = (int)$sRow['next_seq'];
+            if ($dept_seq < 1) $dept_seq = 1;
+        }
+        $seqStmt->close();
+
+        $stmt = $conn->prepare("INSERT INTO transactions (borrower_name, item_name, department, dept_seq, sub_item_name, serial_number, borrower_phone, borrow_duration, lender_name, action_type, image_path, condition_status, borrower_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Borrow', ?, ?, ?)");
+        $stmt->bind_param('sssissssssss', $borrower, $item, $department, $dept_seq, $sub_item, $serial_number, $phone, $duration, $lender, $borrow_paths, $status, $borrower_image_path);
         if ($stmt->execute()) exit('บันทึกการยืมและรูปภาพเรียบร้อยแล้ว');
     }
     foreach ($saved_paths as $path) delete_image_paths($path);

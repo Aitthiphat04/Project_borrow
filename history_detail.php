@@ -2,17 +2,22 @@
 date_default_timezone_set('Asia/Bangkok');
 require_once __DIR__ . '/db.php';
 
-function e($value) {
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-}
-
-function images_array($value) {
-    if ($value === null || $value === '') {
-        return [];
+if (!function_exists('e')) {
+    function e($value) {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
     }
-    return array_values(array_filter(array_map('trim', explode(',', (string)$value))));
 }
 
+if (!function_exists('images_array')) {
+    function images_array($value) {
+        if ($value === null || $value === '') {
+            return [];
+        }
+        return array_values(array_filter(array_map('trim', explode(',', (string)$value))));
+    }
+}
+
+if (!function_exists('format_elapsed_time')) {
 function format_elapsed_time($start, $end) {
     if (!$start || !$end) {
         return 'ยังไม่ครบ';
@@ -41,6 +46,7 @@ function format_elapsed_time($start, $end) {
     }
 
     return implode(' ', $parts) ?: '0 นาที';
+}
 }
 
 $id = (int)($_GET['id'] ?? 0);
@@ -285,7 +291,9 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
                                 </div>
                             </div>
                         <?php endif; ?>
-                        <div class="item"><span class="label">รหัสรายการ</span><span class="value"><?= (int)$row['id'] ?></span></div>
+                        <div class="item"><span class="label">ลำดับในแผนก</span><span class="value"><?= (int)($row['dept_seq'] ?? $row['id']) ?></span></div>
+                        <div class="item"><span class="label">แผนก</span><span class="value"><?= e($row['department'] ?: '-') ?></span></div>
+                        <div class="item"><span class="label">รหัสอ้างอิงระบบ</span><span class="value">#<?= (int)$row['id'] ?></span></div>
                         <div class="item"><span class="label">ชื่อผู้ยืม</span><span class="value"><?= e($row['borrower_name']) ?></span></div>
                         <div class="item"><span class="label">เบอร์ผู้ยืม</span><span class="value"><?= e($row['borrower_phone'] ?: '-') ?></span></div>
                         <div class="item"><span class="label">ผู้ให้ยืม</span><span class="value"><?= e($row['lender_name'] ?: '-') ?></span></div>
