@@ -615,7 +615,7 @@ if (!function_exists('e')) {
                         <span>2. ชื่อ-นามสกุล ผู้ยืม<span class="req">*</span></span>
                         <span class="hint">ชื่อจริงที่ใช้ในการบันทึกเอกสาร</span>
                     </label>
-                    <input type="text" name="full_name" id="fullName" class="form-control" placeholder="เช่น นายสมชาย ใจดี" required value="<?= e($_POST['full_name'] ?? '') ?>" autocomplete="name">
+                    <input type="text" name="full_name" id="fullName" class="form-control" required value="<?= e($_POST['full_name'] ?? '') ?>" autocomplete="name">
                 </div>
 
                 <!-- 3. ข้อมูลบัญชี: ชื่อผู้ใช้ และ เบอร์โทรศัพท์ -->
@@ -624,14 +624,14 @@ if (!function_exists('e')) {
                         <label for="username">
                             <span>3. ชื่อผู้ใช้งาน (Username)<span class="req">*</span></span>
                         </label>
-                        <input type="text" name="username" id="username" class="form-control" placeholder="เช่น somchai หรือ somchai_j" required value="<?= e($_POST['username'] ?? '') ?>" autocomplete="username" pattern="[a-zA-Z0-9_\-\.]{3,40}" title="ภาษาอังกฤษ ตัวเลข ขีดล่าง ขีดกลาง หรือจุด ความยาว 3-40 ตัวอักษร">
+                        <input type="text" name="username" id="username" class="form-control" required value="<?= e($_POST['username'] ?? '') ?>" autocomplete="username" pattern="[a-zA-Z0-9_\-\.]{3,40}" title="ภาษาอังกฤษ ตัวเลข ขีดล่าง ขีดกลาง หรือจุด ความยาว 3-40 ตัวอักษร">
                     </div>
                     <div class="form-group">
                         <label for="phone">
                             <span>4. เบอร์โทรศัพท์ติดต่อ</span>
                             <span class="hint">ถ้ามี</span>
                         </label>
-                        <input type="tel" name="phone" id="phone" class="form-control" placeholder="เช่น 081-234-5678" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
+                        <input type="tel" name="phone" id="phone" class="form-control" value="<?= e($_POST['phone'] ?? '') ?>" autocomplete="tel">
                     </div>
                 </div>
 
@@ -643,7 +643,7 @@ if (!function_exists('e')) {
                             <span class="hint">ขั้นต่ำ 4 ตัว</span>
                         </label>
                         <div class="form-control-wrap">
-                            <input type="password" name="password" id="password" class="form-control has-toggle" placeholder="รหัสผ่าน..." minlength="4" required autocomplete="new-password">
+                            <input type="password" name="password" id="password" class="form-control has-toggle" minlength="4" required autocomplete="new-password">
                             <button type="button" class="password-toggle-btn" data-target="password" title="แสดง/ซ่อนรหัสผ่าน" aria-label="แสดงหรือซ่อนรหัสผ่าน">
                                 <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -661,7 +661,7 @@ if (!function_exists('e')) {
                             <span>6. ยืนยันรหัสผ่าน<span class="req">*</span></span>
                         </label>
                         <div class="form-control-wrap">
-                            <input type="password" name="confirm_password" id="confirmPassword" class="form-control has-toggle" placeholder="ยืนยันรหัสผ่านอีกครั้ง..." minlength="4" required autocomplete="new-password">
+                            <input type="password" name="confirm_password" id="confirmPassword" class="form-control has-toggle" minlength="4" required autocomplete="new-password">
                             <button type="button" class="password-toggle-btn" data-target="confirmPassword" title="แสดง/ซ่อนรหัสผ่าน" aria-label="แสดงหรือซ่อนรหัสผ่าน">
                                 <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
