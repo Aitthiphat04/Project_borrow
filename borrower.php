@@ -31,10 +31,13 @@ foreach ($columns as $name => $definition) {
     if ($check && !$check->num_rows) $conn->query("ALTER TABLE transactions ADD COLUMN `$name` $definition");
 }
 
+$isAllDeptsView = empty($deptSql) || (!empty($currentUser['is_super']) && (($_SESSION['super_admin_view_dept'] ?? 'all') === 'all') && (empty($_GET['dept_filter']) || $_GET['dept_filter'] === 'all'));
+$seqColumn = $isAllDeptsView ? 'id' : 'dept_seq';
+
 $sort = strtolower($_GET['sort'] ?? 'desc');
 $sort = in_array($sort, ['asc', 'desc'], true) ? $sort : 'desc';
 $sortBy = strtolower($_GET['sort_by'] ?? 'id');
-$sortableColumns = ['id' => 'dept_seq', 'borrow' => 'record_time', 'return' => 'return_time'];
+$sortableColumns = ['id' => $seqColumn, 'borrow' => 'record_time', 'return' => 'return_time'];
 $sortBy = array_key_exists($sortBy, $sortableColumns) ? $sortBy : 'id';
 $nextSort = $sort === 'asc' ? 'desc' : 'asc';
 $sortIcon = $sort === 'asc' ? '↑' : '↓';

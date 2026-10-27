@@ -31,10 +31,13 @@ foreach ($columns as $name => $definition) {
     if ($check && !$check->num_rows) $conn->query("ALTER TABLE transactions ADD COLUMN `$name` $definition");
 }
 
+$isAllDeptsView = empty($deptSql) || (!empty($currentUser['is_super']) && (($_SESSION['super_admin_view_dept'] ?? 'all') === 'all') && (empty($_GET['dept_filter']) || $_GET['dept_filter'] === 'all'));
+$seqColumn = $isAllDeptsView ? 'id' : 'dept_seq';
+
 $sort = strtolower($_GET['sort'] ?? 'asc');
 $sort = in_array($sort, ['asc', 'desc'], true) ? $sort : 'asc';
 $sortBy = strtolower($_GET['sort_by'] ?? 'id');
-$sortableColumns = ['id' => 'dept_seq', 'borrow' => 'record_time', 'return' => 'return_time'];
+$sortableColumns = ['id' => $seqColumn, 'borrow' => 'record_time', 'return' => 'return_time'];
 $sortBy = array_key_exists($sortBy, $sortableColumns) ? $sortBy : 'id';
 $nextSort = $sort === 'asc' ? 'desc' : 'asc';
 $sortIcon = $sort === 'asc' ? '↑' : '↓';
@@ -62,7 +65,13 @@ if (!function_exists('e')) {
 }
 
 if (!function_exists('render_lender_rows')) {
-function render_lender_rows($result) {
+function render_lender_rows($result, $currentUser = null, $isAllDeptsView = null) {
+    if ($currentUser === null && function_exists('current_user')) {
+        $currentUser = current_user();
+    }
+    if ($isAllDeptsView === null) {
+        $isAllDeptsView = !empty($currentUser['is_super']) && (($_SESSION['super_admin_view_dept'] ?? 'all') === 'all') && (empty($_GET['dept_filter']) || $_GET['dept_filter'] === 'all');
+    }
     if ($result && $result->num_rows) {
         while ($row = $result->fetch_assoc()) {
             $borrowImages = image_list($row['image_path']);
@@ -96,8 +105,14 @@ function render_lender_rows($result) {
                 'note' => $row['condition_note']
             ], JSON_UNESCAPED_UNICODE));
 
+            $dispSeq = $isAllDeptsView ? (int)$row['id'] : (int)($row['dept_seq'] ?? $row['id']);
+            $seqTitle = $isAllDeptsView
+                ? 'รหัสลำดับระบบ #' . (int)$row['id'] . ' (ลำดับในแผนก: #' . (int)($row['dept_seq'] ?? $row['id']) . ')'
+                : 'ลำดับในแผนก #' . (int)($row['dept_seq'] ?? $row['id']) . ' (รหัสระบบ: #' . (int)$row['id'] . ')';
+
             $searchCorpus = mb_strtolower(implode(' ', [
                 $row['department'] ?? '',
+                $dispSeq,
                 $row['dept_seq'] ?? $row['id'],
                 $row['id'],
                 $row['borrower_name'],
@@ -115,7 +130,7 @@ function render_lender_rows($result) {
             ]));
             ?>
             <tr class="transaction-row" data-id="<?= (int)$row['id'] ?>" data-status="<?= e($status) ?>" data-returned="<?= $row['return_time'] ? '1' : '0' ?>" data-extension="<?= e($extStatus) ?>" data-search="<?= e($searchCorpus) ?>">
-                <td class="col-seq"><?= (int)($row['dept_seq'] ?? $row['id']) ?></td>
+                <td class="col-seq" title="<?= e($seqTitle) ?>"><?= $dispSeq ?></td>
                 <td>
                     <div class="borrower-cell">
                         <?php if (!empty($row['borrower_image_path'])): ?>
@@ -210,7 +225,7 @@ if (isset($_GET['ajax_table'])) {
     header('Content-Type: text/html; charset=UTF-8');
     header('X-Total-Count: ' . ($result ? (int)$result->num_rows : 0));
     header('X-Pending-Ext-Count: ' . $pendingExtCount);
-    render_lender_rows($result);
+    render_lender_rows($result, $currentUser, $isAllDeptsView);
     exit;
 }
 ?>
@@ -658,7 +673,7 @@ if (isset($_GET['ajax_table'])) {
             </thead>
             <tbody id="lenderTableBody">
                 <tr id="noResultsRow" style="display:none;"><td colspan="10" class="no-results-cell"><div class="no-results"><div class="no-results-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div><div class="no-results-text">ไม่พบรายการที่ตรงกับคำค้นหาหรือตัวกรอง</div><button type="button" class="no-results-reset" id="resetFilterBtn">ล้างตัวกรองและการค้นหา</button></div></td></tr>
-                <?php render_lender_rows($result); ?>
+                <?php render_lender_rows($result, $currentUser, $isAllDeptsView); ?>
             </tbody>
         </table>
     </div>
