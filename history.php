@@ -245,7 +245,7 @@ th:nth-child(11),th.col-manage,td.col-manage{width:165px;min-width:165px}
 .modal-borrower-badge{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fbf9ff;border:1.5px solid #e1d3f3;border-radius:12px;margin-bottom:12px}
 .modal-borrower-badge img{width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid var(--gold);flex:none}
 @media(max-width:650px){html body{padding:8px 6px}.shell .top{margin:-16px -12px 14px;padding:14px 12px}.pea-logo{width:56px;height:56px}.compare-grid,.detail-grid{grid-template-columns:1fr}.image-panel img{height:180px}.filter-toolbar{flex-direction:column;align-items:stretch;gap:8px}.filter-right{margin-left:0;width:100%}.search-box{width:100%}.batch-bar{bottom:10px;width:96%;padding:10px 12px;gap:8px}.batch-left,.batch-right{width:100%;justify-content:space-between}.select-mode .table-wrap{margin-bottom:120px}}
-</style></head><body><main class="shell"><div class="top"><div><div class="brand"><img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA"><div><div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b></div><h1>&#3611;&#3619;&#3632;&#3623;&#3633;&#3605;&#3636;&#3585;&#3634;&#3619;&#3618;&#3639;&#3617;&#45;&#3588;&#3639;&#3609;</h1><p class="subtitle">ระบบสำหรับผู้ดูแลระบบ (<?= e($currentUser['dept_name']) ?>)</p></div></div></div><div class="actions"><button class="borrow-open" id="borrowOpen">&#65291;&#32;&#3618;&#3639;&#3617;&#3629;&#3640;&#3611;&#3585;&#3619;&#3603;&#3660;</button><button type="button" class="btn-select-mode" id="btnSelectMode">ลบอุปกรณ์</button><a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a></div></div>
+</style></head><body><main class="shell"><div class="top"><div><div class="brand"><img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA"><div><div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b></div><h1>&#3611;&#3619;&#3632;&#3623;&#3633;&#3605;&#3636;&#3585;&#3634;&#3619;&#3618;&#3639;&#3617;&#45;&#3588;&#3639;&#3609;</h1><p class="subtitle">ระบบสำหรับผู้ดูแลระบบ (<?= e($currentUser['dept_name']) ?>)</p></div></div></div><div class="actions"><button class="borrow-open" id="borrowOpen">&#65291;&#32;&#3618;&#3639;&#3617;&#3629;&#3640;&#3611;&#3585;&#3619;&#3603;&#3660;</button><button type="button" class="btn-select-mode" id="btnSelectMode">ลบอุปกรณ์</button><a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a></div></div>
 <div class="batch-bar" id="batchBar" aria-hidden="true"><div class="batch-left"><label class="select-all-label"><input type="checkbox" id="selectAllCheckbox" class="row-checkbox"><span>เลือกทั้งหมด (<span id="totalItemsCount"><?= $result ? $result->num_rows : 0 ?></span> รายการ)</span></label><span class="batch-count">เลือกแล้ว <b id="selectedCountBadge">0</b> รายการ</span></div><div class="batch-right"><button type="button" class="batch-btn batch-delete" id="batchDeleteBtn" disabled>ลบรายการที่เลือก (<span id="batchDeleteCount">0</span>)</button><button type="button" class="batch-btn batch-cancel" id="batchCancelBtn">ยกเลิกการลบ</button></div></div>
 <div class="filter-toolbar">
     <div class="filter-left">
@@ -353,7 +353,7 @@ function openModal(data){
         add.onclick=()=>{
             modal.classList.remove('show');
             const params=new URLSearchParams({form:'return',id:data.id,borrower:data.borrower,item:data.item});
-            openTransactionForm('index.php?'+params.toString(),'\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e2b\u0e25\u0e31\u0e01\u0e10\u0e32\u0e19\u0e04\u0e37\u0e19');
+            openTransactionForm('borrow_form.php?'+params.toString(),'\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e2b\u0e25\u0e31\u0e01\u0e10\u0e32\u0e19\u0e04\u0e37\u0e19');
         };
         returnPanel.appendChild(add);
     }
@@ -432,7 +432,7 @@ if (tableBody) {
                 lender: '<?= e($currentUser['full_name']) ?>'
             });
             const formTitle = returnBtn.classList.contains('add-return-image') ? 'เพิ่มหลักฐานคืน' : 'บันทึกการรับคืน';
-            openTransactionForm('index.php?' + params.toString(), formTitle);
+            openTransactionForm('borrow_form.php?' + params.toString(), formTitle);
             return;
         }
 
@@ -535,7 +535,7 @@ if(batchDeleteBtn){
 
 const formModal=document.getElementById('formModal'),formFrame=document.getElementById('formFrame'),formTitle=document.getElementById('formModalTitle');
 function openTransactionForm(url,titleText){formTitle.textContent=titleText;formModal.classList.add('show');formModal.setAttribute('aria-hidden','false');formFrame.src=url;}
-document.getElementById('borrowOpen').addEventListener('click',()=>openTransactionForm('index.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'),'ยืมอุปกรณ์'));
+document.getElementById('borrowOpen').addEventListener('click',()=>openTransactionForm('borrow_form.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'),'ยืมอุปกรณ์'));
 document.querySelector('.form-close').addEventListener('click',()=>{formModal.classList.remove('show');formModal.setAttribute('aria-hidden','true');formFrame.src='about:blank';});
 formModal.addEventListener('click',event=>{if(event.target===formModal){formModal.classList.remove('show');formModal.setAttribute('aria-hidden','true');formFrame.src='about:blank';}});
 
@@ -572,14 +572,14 @@ async function pollTableData() {
         });
 
         if (res.status === 401 || res.status === 403 || res.redirected) {
-            window.location.href = 'login.php';
+            window.location.href = 'index.php';
             return;
         }
 
         if (res.ok) {
             const html = await res.text();
-            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
-                window.location.href = 'login.php';
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php') || html.includes('auth-card')) {
+                window.location.href = 'index.php';
                 return;
             }
             const tbodyEl = document.querySelector('.table-wrap tbody');

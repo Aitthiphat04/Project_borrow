@@ -613,7 +613,7 @@ if (isset($_GET['ajax_table'])) {
             </div>
         </div>
         <div class="actions">
-            <a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
         </div>
     </div>
 
@@ -1010,13 +1010,13 @@ async function pollBorrowerData(force = false) {
             cache: 'no-store'
         });
         if (res.status === 401 || res.status === 403 || res.redirected) {
-            window.location.href = 'login.php';
+            window.location.href = 'index.php';
             return;
         }
         if (res.ok) {
             const html = await res.text();
-            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
-                window.location.href = 'login.php';
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php') || html.includes('auth-card')) {
+                window.location.href = 'index.php';
                 return;
             }
             const tbody = document.getElementById('borrowerTableBody');

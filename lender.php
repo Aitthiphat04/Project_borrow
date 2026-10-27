@@ -590,7 +590,7 @@ if (isset($_GET['ajax_table'])) {
         <div class="actions">
             <button class="borrow-open" id="borrowOpen">＋ ยืมอุปกรณ์</button>
             <button type="button" class="btn-select-mode btn-ext-top" id="btnFilterPendingExt" style="background: linear-gradient(135deg, #e67e22, #ca640a); border-color: #fca566; box-shadow: 0 5px 14px rgba(202, 100, 10, 0.25);">คำขอต่อเวลา (<span id="topPendingCount"><?= $pendingExtCount ?></span>)</button>
-            <a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
         </div>
     </div>
 
@@ -902,7 +902,7 @@ function openTransactionForm(url, titleText) {
     formFrame.src = url;
 }
 
-document.getElementById('borrowOpen').addEventListener('click', () => openTransactionForm('index.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'), 'ยืมอุปกรณ์'));
+document.getElementById('borrowOpen').addEventListener('click', () => openTransactionForm('borrow_form.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'), 'ยืมอุปกรณ์'));
 document.querySelector('.form-close').addEventListener('click', () => { formModal.classList.remove('show'); formFrame.src = 'about:blank'; });
 document.querySelectorAll('.modal .close:not(.form-close)').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal').classList.remove('show')));
 document.querySelectorAll('.modal').forEach(overlay => overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('show'); if (overlay === formModal) formFrame.src = 'about:blank'; } }));
@@ -1039,7 +1039,7 @@ if (tableBody) {
                 department: '<?= e($currentUser['dept_name']) ?>',
                 lender: '<?= e($currentUser['full_name']) ?>'
             });
-            openTransactionForm('index.php?' + params.toString(), 'บันทึกการรับคืน');
+            openTransactionForm('borrow_form.php?' + params.toString(), 'บันทึกการรับคืน');
             return;
         }
 
@@ -1078,13 +1078,13 @@ async function pollLenderData(force = false) {
             cache: 'no-store'
         });
         if (res.status === 401 || res.status === 403 || res.redirected) {
-            window.location.href = 'login.php';
+            window.location.href = 'index.php';
             return;
         }
         if (res.ok) {
             const html = await res.text();
-            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
-                window.location.href = 'login.php';
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php') || html.includes('auth-card')) {
+                window.location.href = 'index.php';
                 return;
             }
             const pendingHeader = res.headers.get('X-Pending-Ext-Count');

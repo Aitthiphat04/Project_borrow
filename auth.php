@@ -295,10 +295,10 @@ function require_auth_and_role($allowedRoles = []) {
         if ($isAjax) {
             http_response_code(401);
             header('Content-Type: application/json; charset=UTF-8');
-            echo json_encode(['error' => 'unauthorized', 'redirect' => 'login.php']);
+            echo json_encode(['error' => 'unauthorized', 'redirect' => 'index.php']);
             exit;
         }
-        header('Location: login.php');
+        header('Location: index.php');
         exit;
     }
 
@@ -311,7 +311,7 @@ function require_auth_and_role($allowedRoles = []) {
         if ($isAjax) {
             http_response_code(403);
             header('Content-Type: application/json; charset=UTF-8');
-            echo json_encode(['error' => 'forbidden', 'redirect' => 'login.php']);
+            echo json_encode(['error' => 'forbidden', 'redirect' => 'index.php']);
             exit;
         }
         // หากผู้ใช้ไม่มีสิทธิ์เข้าหน้านี้ ให้พาไปหน้าที่ตรงกับบทบาทของตนเอง
@@ -322,7 +322,7 @@ function require_auth_and_role($allowedRoles = []) {
         } elseif ($currentRole === 'admin') {
             header('Location: history.php');
         } else {
-            header('Location: login.php');
+            header('Location: index.php');
         }
         exit;
     }
