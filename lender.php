@@ -129,14 +129,6 @@ function render_lender_rows($result) {
                         <?php endif; ?>
                         <div class="borrower-info">
                             <div class="person"><?= e($row['borrower_name']) ?></div>
-                            <?php if (!empty($row['borrower_dept_name'])): ?>
-                                <div class="borrower-dept-badge <?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? 'cross-dept' : '' ?>" title="สังกัดของผู้ยืมอุปกรณ์">
-                                    <span><?= e($row['borrower_dept_name']) ?></span>
-                                    <?php if (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']): ?>
-                                        <span class="cross-dept-tag">ยืมข้ามแผนก</span>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
                             <?php if ($row['borrower_phone']): ?>
                                 <div class="muted">☎ <?= e($row['borrower_phone']) ?></div>
                             <?php endif; ?>
