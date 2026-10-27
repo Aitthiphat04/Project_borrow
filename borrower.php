@@ -4,7 +4,7 @@ require_once __DIR__ . '/auth.php';
 require_auth_and_role(['borrower', 'admin', 'super_admin']);
 $currentUser = current_user();
 $deptInfo = $currentUser;
-$deptSql = get_department_sql_condition($conn);
+$deptSql = ($currentUser['role'] === 'borrower') ? '' : get_department_sql_condition($conn);
 
 // ตรวจสอบและสร้างคอลัมน์ที่จำเป็นอัตโนมัติ
 $columns = [
