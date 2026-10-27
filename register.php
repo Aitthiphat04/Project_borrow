@@ -510,6 +510,127 @@ if (!function_exists('e')) {
             margin-top: 14px;
         }
         .portal-footer b { color: var(--purple); }
+
+        /* ==========================================================================
+           Dark Mode Overrides for register.php
+           ========================================================================== */
+        html[data-theme="dark"] {
+            --purple: #9b72cf;
+            --deep: #f5f0ff;
+            --gold: #f0c353;
+            --gold-light: #fae8a6;
+            --line: #3b2c55;
+            --ink: #f5f0ff;
+            --muted: #b9accf;
+            --card-bg: rgba(31, 19, 56, 0.95);
+        }
+        html[data-theme="dark"] body {
+            background: radial-gradient(circle at 10% 15%, rgba(122, 83, 190, 0.25), transparent 22rem),
+                        radial-gradient(circle at 90% 85%, rgba(22, 10, 43, 0.7), transparent 26rem),
+                        linear-gradient(135deg, #100720 0%, #190e2f 50%, #110722 100%) !important;
+            color: #f5f0ff !important;
+        }
+        html[data-theme="dark"] .portal-brand-badge {
+            color: #fae8a6 !important;
+            background: rgba(43, 26, 74, 0.85) !important;
+            border-color: #553b7c !important;
+        }
+        html[data-theme="dark"] .portal-title {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .portal-title span {
+            background: linear-gradient(135deg, #fae8a6, #f0c353 50%, #d4a320) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        html[data-theme="dark"] .portal-desc {
+            color: #c4b5de !important;
+        }
+        html[data-theme="dark"] .auth-card {
+            background: rgba(31, 19, 56, 0.95) !important;
+            border-color: #3b2c55 !important;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5) !important;
+        }
+        html[data-theme="dark"] .auth-card-title {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .auth-card-sub {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .role-notice-banner {
+            background: #1c1130 !important;
+            border-color: #4a346e !important;
+            border-left: 4px solid #f0c353 !important;
+        }
+        html[data-theme="dark"] .role-notice-icon {
+            background: #392813 !important;
+            color: #f0c353 !important;
+        }
+        html[data-theme="dark"] .role-notice-title {
+            color: #fae8a6 !important;
+        }
+        html[data-theme="dark"] .role-notice-desc {
+            color: #bfaedc !important;
+        }
+        html[data-theme="dark"] .form-group label {
+            color: #d8ccee !important;
+        }
+        html[data-theme="dark"] .form-group label .hint {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .form-control {
+            background: #180e2b !important;
+            border-color: #4a3869 !important;
+            color: #f5f0ff !important;
+        }
+        html[data-theme="dark"] .form-control:focus {
+            border-color: #f0c353 !important;
+            box-shadow: 0 0 0 3px rgba(240, 195, 83, 0.25) !important;
+        }
+        html[data-theme="dark"] .form-control option {
+            background: #23173d !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .form-checkbox-wrap {
+            color: #d8ccee !important;
+        }
+        html[data-theme="dark"] .btn-submit-register {
+            background: linear-gradient(135deg, #7a53be, #542f96) !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45) !important;
+        }
+        html[data-theme="dark"] .btn-submit-register:hover {
+            filter: brightness(1.1);
+        }
+        html[data-theme="dark"] .auth-switch-box {
+            border-color: #3b2c55 !important;
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .auth-switch-link {
+            color: #f0c353 !important;
+        }
+        html[data-theme="dark"] .success-info-box {
+            background: #180e2b !important;
+            border-color: #3b2c55 !important;
+        }
+        html[data-theme="dark"] .info-label {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .info-val {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .info-row {
+            border-color: #382654 !important;
+        }
+        html[data-theme="dark"] .btn-goto-login {
+            background: linear-gradient(135deg, #7a53be, #542f96) !important;
+        }
+        html[data-theme="dark"] .portal-footer {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .portal-footer b {
+            color: #fae8a6 !important;
+        }
     </style>
     <link rel="stylesheet" href="theme.css?v=2">
 </head>
