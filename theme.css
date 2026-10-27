@@ -269,6 +269,7 @@ html[data-theme="dark"] .empty-row td {
    6. Modals (Detail, Photo Viewer, Review Extension, Note Modal)
    ========================================================================== */
 html[data-theme="dark"] .modal-box,
+html[data-theme="dark"] .dialog-modal-box,
 html[data-theme="dark"] .camera-box,
 html[data-theme="dark"] .review-box,
 html[data-theme="dark"] .note-box,
@@ -277,6 +278,12 @@ html[data-theme="dark"] .detail-box {
     border: 1px solid var(--modal-border) !important;
     color: var(--text-main) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7) !important;
+}
+
+html[data-theme="dark"] .modal-box h2,
+html[data-theme="dark"] .dialog-modal-box h2,
+html[data-theme="dark"] .camera-box h2 {
+    color: #ffffff !important;
 }
 
 html[data-theme="dark"] .modal-header,
@@ -290,18 +297,105 @@ html[data-theme="dark"] .camera-close {
     color: #e5dbf5 !important;
 }
 
-html[data-theme="dark"] .detail-grid,
-html[data-theme="dark"] .detail-item {
-    background: #1c1230 !important;
-    border-color: #3b2c55 !important;
+html[data-theme="dark"] .review-info-card {
+    background: #180e2e !important;
+    border: 1.5px solid #3f2e5a !important;
 }
 
+html[data-theme="dark"] .review-info-label {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .review-info-val {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .review-reason-box {
+    background: #332014 !important;
+    border: 1px dashed #6a441e !important;
+    color: #fed7aa !important;
+}
+
+html[data-theme="dark"] .detail-grid,
+html[data-theme="dark"] .detail-item {
+    background: #180e2e !important;
+    border: 1px solid #3b2c55 !important;
+}
+
+html[data-theme="dark"] .detail-item b,
 html[data-theme="dark"] .detail-item .lbl {
     color: var(--text-muted) !important;
 }
 
+html[data-theme="dark"] .detail-item span,
 html[data-theme="dark"] .detail-item .val {
     color: #ffffff !important;
+}
+
+html[data-theme="dark"] .image-panel {
+    background: #180e2e !important;
+    border: 1px solid #3b2c55 !important;
+}
+
+html[data-theme="dark"] .image-panel h3 {
+    color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .image-panel img {
+    background: #120924 !important;
+    border: 1px solid #3b2c55 !important;
+}
+
+html[data-theme="dark"] .image-panel .none {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .note {
+    background: #332014 !important;
+    border: 1px solid #6a441e !important;
+    color: #fed7aa !important;
+}
+
+html[data-theme="dark"] .return-photo-card {
+    background: #180e2e !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .photo-btn {
+    background: #1e1335 !important;
+    border-color: #3f2e5a !important;
+}
+
+html[data-theme="dark"] .photo-btn span {
+    color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .borrower-avatar-btn {
+    background: #24163e !important;
+}
+
+html[data-theme="dark"] .borrower-avatar-placeholder {
+    background: linear-gradient(135deg, #372358, #4d337a) !important;
+    border-color: #5c3e8e !important;
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .ext-badge.pending {
+    background: #3a2212 !important;
+    color: #fca566 !important;
+    border-color: #63381a !important;
+}
+
+html[data-theme="dark"] .ext-badge.approved {
+    background: #143324 !important;
+    color: #86efac !important;
+    border-color: #1f543a !important;
+}
+
+html[data-theme="dark"] .ext-badge.rejected {
+    background: #3b141d !important;
+    color: #fca5a5 !important;
+    border-color: #66212d !important;
 }
 
 html[data-theme="dark"] .note-textarea,
@@ -321,12 +415,15 @@ html[data-theme="dark"] .page .topbar .title {
 html[data-theme="dark"] .dept-header-card {
     background: var(--card-bg) !important;
     border-color: var(--line) !important;
+    border-left: 7px solid #7a53be !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
 }
 
 html[data-theme="dark"] .dept-card-icon {
     background: linear-gradient(135deg, #372358, #4d337a) !important;
     border-color: #5c3e8e !important;
     color: #fae8a6 !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 html[data-theme="dark"] .dept-card-heading {
@@ -338,7 +435,7 @@ html[data-theme="dark"] .dept-card-title {
 }
 
 html[data-theme="dark"] .dept-tag-badge {
-    background: #1c1130 !important;
+    background: #180e2d !important;
     border-color: #412f5a !important;
 }
 
@@ -350,35 +447,122 @@ html[data-theme="dark"] .dept-tag-badge .tag-number {
     color: var(--gold) !important;
 }
 
+html[data-theme="dark"] .dept-tag-badge.sys-id {
+    background: #2b1d12 !important;
+    border-color: #5c4118 !important;
+}
+
+html[data-theme="dark"] .dept-tag-badge.sys-id .tag-title {
+    color: #e5b328 !important;
+}
+
+html[data-theme="dark"] .dept-tag-badge.sys-id .tag-number {
+    color: #fae8a6 !important;
+}
+
 html[data-theme="dark"] .card {
     background: var(--card-bg) !important;
     border-color: var(--line) !important;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .session {
+    background: #150a26 !important;
+    border: 1px solid #362552 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
 }
 
 html[data-theme="dark"] .session-title {
-    color: #ffffff !important;
-    border-color: var(--line) !important;
+    color: var(--gold) !important;
+    border-bottom: 2px solid #362552 !important;
+    padding-bottom: 8px !important;
 }
 
+html[data-theme="dark"] .item,
 html[data-theme="dark"] .meta .item {
-    border-color: var(--line) !important;
+    background: #24163e !important;
+    border: 1px solid #432e65 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 
+html[data-theme="dark"] .label,
 html[data-theme="dark"] .meta .label {
-    color: var(--text-muted) !important;
+    color: #c4b5de !important;
 }
 
+html[data-theme="dark"] .value,
 html[data-theme="dark"] .meta .value {
-    color: #f5f0ff !important;
+    color: #ffffff !important;
 }
 
-html[data-theme="dark"] .gallery-grid .panel {
-    background: #1c1230 !important;
+html[data-theme="dark"] .item[style*="background"],
+html[data-theme="dark"] .meta .item[style*="background"] {
+    background: #2b1b48 !important;
+    border-color: #553b7c !important;
+}
+
+html[data-theme="dark"] .item span[style*="color: var(--purple)"],
+html[data-theme="dark"] .item span[style*="color:var(--purple)"],
+html[data-theme="dark"] .item div[style*="color: var(--purple)"],
+html[data-theme="dark"] .item div[style*="color:var(--purple)"] {
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .item div[style*="background: #ede3f9"],
+html[data-theme="dark"] .item div[style*="background:#ede3f9"] {
+    background: #3b275f !important;
+    color: #e5dbf5 !important;
+}
+
+html[data-theme="dark"] .item span[style*="color: #b97a06"] {
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .item div[style*="color: var(--gray)"] {
+    color: #b9accf !important;
+}
+
+html[data-theme="dark"] .item span[style*="background"] {
+    background: #331f52 !important;
+    color: #fce79a !important;
+    border-color: #563c7c !important;
+}
+
+html[data-theme="dark"] .gallery-grid .panel,
+html[data-theme="dark"] .panel {
+    background: #150a26 !important;
+    border: 1px solid #362552 !important;
+}
+
+html[data-theme="dark"] .gallery-grid .panel h3,
+html[data-theme="dark"] .panel h3 {
+    color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .img-list img {
     border-color: #3b2c55 !important;
+    background: #120924 !important;
 }
 
-html[data-theme="dark"] .gallery-grid .panel h3 {
+html[data-theme="dark"] .none {
+    background: #1a0f30 !important;
+    border-color: #3b2c55 !important;
+    color: #b9accf !important;
+}
+
+html[data-theme="dark"] .btn.secondary {
+    background: #2b1a47 !important;
+    color: #f5f0ff !important;
+    border: 1px solid #4a346e !important;
+}
+
+html[data-theme="dark"] .btn.secondary:hover {
+    background: #3b2462 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .btn.primary {
+    background: linear-gradient(135deg, #7a53be, #542f96) !important;
     color: #ffffff !important;
 }
 
@@ -389,6 +573,10 @@ html[data-theme="dark"] .edit-card {
 
 html[data-theme="dark"] .edit-card h2 {
     color: #ffffff !important;
+}
+
+html[data-theme="dark"] .edit-form label {
+    color: #b9accf !important;
 }
 
 html[data-theme="dark"] .edit-form select,
@@ -515,3 +703,79 @@ html[data-theme="dark"] .nav-tab-btn.active {
     background: linear-gradient(135deg, #643fa3, #432474) !important;
     color: #ffffff !important;
 }
+
+html[data-theme="dark"] .auth-card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .auth-card-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .auth-card-sub {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .register-prompt {
+    background: #2a1f14 !important;
+    border-color: #5d431c !important;
+}
+
+html[data-theme="dark"] .register-prompt-title {
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .register-prompt-sub {
+    color: #e5b328 !important;
+}
+
+html[data-theme="dark"] .role-reference-card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .role-reference-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .role-ref-row {
+    background: #1c1130 !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .role-ref-name {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .success-info-box {
+    background: #1c1130 !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .info-val {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .info-row {
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .btn-quick-day {
+    background: #23163e !important;
+    border-color: #422d64 !important;
+    color: #f5f0ff !important;
+}
+
+html[data-theme="dark"] .btn-quick-day:hover {
+    background: #341f59 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .modal-borrower-badge {
+    background: #180e2e !important;
+    border-color: #3f2e5a !important;
+}
+

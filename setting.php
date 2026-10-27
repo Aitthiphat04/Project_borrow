@@ -92,7 +92,6 @@ $avatarChar = mb_substr($currentUser['full_name'] ?: $currentUser['username'] ?:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITEMFLOW | ตั้งค่าระบบ</title>
-    <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
     <style>
         :root {
@@ -678,6 +677,7 @@ $avatarChar = mb_substr($currentUser['full_name'] ?: $currentUser['username'] ?:
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+    <link rel="stylesheet" href="theme.css?v=2">
 </head>
 <body>
 

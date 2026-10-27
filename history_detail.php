@@ -109,7 +109,6 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITEMFLOW | รายละเอียดรายการ</title>
-    <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
     <style>
         :root {
@@ -359,7 +358,167 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
             font-weight: 900;
             box-shadow: 0 2px 6px rgba(217, 172, 59, 0.25);
         }
+
+        /* ==========================================================================
+           Dark Mode Theme for history_detail.php
+           ========================================================================== */
+        html[data-theme="dark"] {
+            --purple: #9b72cf;
+            --deep: #f5f0ff;
+            --gold: #f0c353;
+            --line: #3b2c55;
+            --bg: #120924;
+            --gray: #b9accf;
+            --card: #1f1338;
+        }
+        html[data-theme="dark"] body {
+            background: radial-gradient(circle at 10% 15%, rgba(122, 83, 190, 0.25), transparent 22rem),
+                        radial-gradient(circle at 90% 85%, rgba(22, 10, 43, 0.7), transparent 26rem),
+                        linear-gradient(135deg, #100720 0%, #190e2f 50%, #110722 100%) !important;
+            color: #f5f0ff !important;
+        }
+        html[data-theme="dark"] .title {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .dept-header-card {
+            background: #1f1338 !important;
+            border: 2px solid #3b2c55 !important;
+            border-left: 7px solid #7a53be !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        }
+        html[data-theme="dark"] .dept-card-icon {
+            background: linear-gradient(135deg, #372358, #4d337a) !important;
+            border-color: #5c3e8e !important;
+            color: #fae8a6 !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3) !important;
+        }
+        html[data-theme="dark"] .dept-card-heading {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .dept-card-title {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge {
+            background: #180e2d !important;
+            border-color: #412f5a !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge .tag-title {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge .tag-number {
+            color: #f0c353 !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge.sys-id {
+            background: #2b1d12 !important;
+            border-color: #5c4118 !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge.sys-id .tag-title {
+            color: #e5b328 !important;
+        }
+        html[data-theme="dark"] .dept-tag-badge.sys-id .tag-number {
+            color: #fae8a6 !important;
+        }
+        html[data-theme="dark"] .card {
+            background: #1f1338 !important;
+            border-color: #3b2c55 !important;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5) !important;
+        }
+        html[data-theme="dark"] .session {
+            background: #150a26 !important;
+            border: 1px solid #362552 !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        }
+        html[data-theme="dark"] .session-title {
+            color: #f0c353 !important;
+            border-bottom: 2px solid #362552 !important;
+            padding-bottom: 8px !important;
+        }
+        html[data-theme="dark"] .item {
+            background: #24163e !important;
+            border: 1px solid #432e65 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+        }
+        html[data-theme="dark"] .label {
+            color: #c4b5de !important;
+        }
+        html[data-theme="dark"] .value {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .item[style*="background"] {
+            background: #2b1b48 !important;
+            border-color: #553b7c !important;
+        }
+        html[data-theme="dark"] .item span[style*="color: var(--purple)"],
+        html[data-theme="dark"] .item span[style*="color:var(--purple)"] {
+            color: #fae8a6 !important;
+        }
+        html[data-theme="dark"] .item div[style*="color: var(--purple)"],
+        html[data-theme="dark"] .item div[style*="color:var(--purple)"] {
+            color: #fae8a6 !important;
+        }
+        html[data-theme="dark"] .item div[style*="background: #ede3f9"],
+        html[data-theme="dark"] .item div[style*="background:#ede3f9"] {
+            background: #3b275f !important;
+            color: #e5dbf5 !important;
+        }
+        html[data-theme="dark"] .item span[style*="color: #b97a06"] {
+            color: #fae8a6 !important;
+        }
+        html[data-theme="dark"] .item div[style*="color: var(--gray)"] {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .item span[style*="background"] {
+            background: #331f52 !important;
+            color: #fce79a !important;
+            border-color: #563c7c !important;
+        }
+        html[data-theme="dark"] .panel {
+            background: #150a26 !important;
+            border: 1px solid #362552 !important;
+        }
+        html[data-theme="dark"] .panel h3 {
+            color: #f0c353 !important;
+        }
+        html[data-theme="dark"] .img-list img {
+            border-color: #3b2c55 !important;
+            background: #120924 !important;
+        }
+        html[data-theme="dark"] .none {
+            background: #1a0f30 !important;
+            border-color: #3b2c55 !important;
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .btn.secondary {
+            background: #2b1a47 !important;
+            color: #f5f0ff !important;
+            border: 1px solid #4a346e !important;
+        }
+        html[data-theme="dark"] .btn.secondary:hover {
+            background: #3b2462 !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .btn.primary {
+            background: linear-gradient(135deg, #7a53be, #542f96) !important;
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .edit-card {
+            background: #251642 !important;
+            border-color: #4b366a !important;
+        }
+        html[data-theme="dark"] .edit-card h2 {
+            color: #ffffff !important;
+        }
+        html[data-theme="dark"] .edit-form label {
+            color: #b9accf !important;
+        }
+        html[data-theme="dark"] .edit-form select,
+        html[data-theme="dark"] .edit-form textarea {
+            background: #180e2b !important;
+            border-color: #4a3869 !important;
+            color: #f5f0ff !important;
+        }
     </style>
+    <link rel="stylesheet" href="theme.css?v=2">
 </head>
 <body>
     <div class="page">

@@ -58,7 +58,6 @@ if (!function_exists('e')) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
     <style>
         :root {
@@ -418,6 +417,7 @@ if (!function_exists('e')) {
         }
         .portal-footer b { color: var(--purple); }
     </style>
+    <link rel="stylesheet" href="theme.css?v=2">
 </head>
 <body>
 
