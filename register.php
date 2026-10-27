@@ -559,7 +559,7 @@ if (!function_exists('e')) {
                     </div>
                 </div>
 
-                <a href="login.php?dept=<?= urlencode($successData['dept_key']) ?>&user=<?= urlencode($successData['username']) ?>" class="btn-goto-login">
+                <a href="index.php?dept=<?= urlencode($successData['dept_key']) ?>&user=<?= urlencode($successData['username']) ?>" class="btn-goto-login">
                     <span>ไปยังหน้าเข้าสู่ระบบเพื่อเข้าใช้งาน</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -676,7 +676,7 @@ if (!function_exists('e')) {
 
             <div class="auth-switch-box">
                 <span>มีบัญชีผู้ใช้งานอยู่แล้ว?</span>
-                <a href="login.php" class="auth-switch-link">เข้าสู่ระบบที่นี่</a>
+                <a href="index.php" class="auth-switch-link">เข้าสู่ระบบที่นี่</a>
             </div>
         <?php endif; ?>
     </div>

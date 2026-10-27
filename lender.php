@@ -9,7 +9,8 @@ $deptSql = get_department_sql_condition($conn);
 // ตรวจสอบและสร้างคอลัมน์ที่จำเป็นอัตโนมัติ
 $columns = [
     'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
-    'dept_seq' => "INT NOT NULL DEFAULT 1",
+    'borrower_username' => "VARCHAR(100) NOT NULL DEFAULT ''",
+    'borrower_dept_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -100,6 +101,7 @@ function render_lender_rows($result) {
                 $row['dept_seq'] ?? $row['id'],
                 $row['id'],
                 $row['borrower_name'],
+                $row['borrower_dept_name'] ?? '',
                 $row['borrower_phone'] ?: '',
                 $row['item_name'],
                 $row['sub_item_name'] ?: '',
@@ -127,8 +129,16 @@ function render_lender_rows($result) {
                         <?php endif; ?>
                         <div class="borrower-info">
                             <div class="person"><?= e($row['borrower_name']) ?></div>
+                            <?php if (!empty($row['borrower_dept_name'])): ?>
+                                <div class="borrower-dept-badge <?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? 'cross-dept' : '' ?>" title="สังกัดของผู้ยืมอุปกรณ์">
+                                    <span><?= e($row['borrower_dept_name']) ?></span>
+                                    <?php if (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']): ?>
+                                        <span class="cross-dept-tag">ยืมข้ามแผนก</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                             <?php if ($row['borrower_phone']): ?>
-                                <div class="muted"><?= e($row['borrower_phone']) ?></div>
+                                <div class="muted">☎ <?= e($row['borrower_phone']) ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -350,6 +360,9 @@ if (isset($_GET['ajax_table'])) {
 
         .col-seq { font-size: 1.15rem; font-weight: 900; color: var(--purple); letter-spacing: -.02em; }
         .row-dept-badge { display: inline-block; padding: 2px 7px; background: #f1e9fc; color: var(--purple); border: 1px solid #d9cded; border-radius: 6px; font-size: .70rem; font-weight: 800; margin-top: 3px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .borrower-dept-badge { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 700; color: #533e70; background: #f3ecfb; border: 1px solid #dfd0f2; border-radius: 6px; padding: 2px 6px; margin-top: 4px; max-width: 100%; line-height: 1.25; }
+        .borrower-dept-badge.cross-dept { color: #9c4100; background: #fff5e6; border-color: #ffd8a8; }
+        .cross-dept-tag { background: linear-gradient(135deg, #e65100, #c83200); color: #fff; font-size: .62rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; letter-spacing: .02em; white-space: nowrap; }
         .person { font-size: .95rem; font-weight: 800; color: var(--deep); }
         .muted { font-size: .80rem; color: #766a88; margin-top: 3px; }
         .duration-cell { font-size: .88rem; font-weight: 800; color: var(--deep); white-space: normal; line-height: 1.32; }
@@ -590,8 +603,12 @@ if (isset($_GET['ajax_table'])) {
         <div class="actions">
             <button class="borrow-open" id="borrowOpen">＋ ยืมอุปกรณ์</button>
             <button type="button" class="btn-select-mode btn-ext-top" id="btnFilterPendingExt" style="background: linear-gradient(135deg, #e67e22, #ca640a); border-color: #fca566; box-shadow: 0 5px 14px rgba(202, 100, 10, 0.25);">คำขอต่อเวลา (<span id="topPendingCount"><?= $pendingExtCount ?></span>)</button>
+<<<<<<< HEAD
             <a href="settings.php" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);box-shadow:none;padding:12px 16px;" title="ตั้งค่าระบบ">⚙️ ตั้งค่า</a>
             <a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+=======
+            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+>>>>>>> 92b0b40b6496aa7bfea488b0cb312c01058d1615
         </div>
     </div>
 
@@ -903,7 +920,7 @@ function openTransactionForm(url, titleText) {
     formFrame.src = url;
 }
 
-document.getElementById('borrowOpen').addEventListener('click', () => openTransactionForm('index.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'), 'ยืมอุปกรณ์'));
+document.getElementById('borrowOpen').addEventListener('click', () => openTransactionForm('borrow_form.php?form=borrow&department=' + encodeURIComponent('<?= e($currentUser['dept_name']) ?>') + '&lender=' + encodeURIComponent('<?= e($currentUser['full_name']) ?>'), 'ยืมอุปกรณ์'));
 document.querySelector('.form-close').addEventListener('click', () => { formModal.classList.remove('show'); formFrame.src = 'about:blank'; });
 document.querySelectorAll('.modal .close:not(.form-close)').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal').classList.remove('show')));
 document.querySelectorAll('.modal').forEach(overlay => overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('show'); if (overlay === formModal) formFrame.src = 'about:blank'; } }));
@@ -1040,7 +1057,7 @@ if (tableBody) {
                 department: '<?= e($currentUser['dept_name']) ?>',
                 lender: '<?= e($currentUser['full_name']) ?>'
             });
-            openTransactionForm('index.php?' + params.toString(), 'บันทึกการรับคืน');
+            openTransactionForm('borrow_form.php?' + params.toString(), 'บันทึกการรับคืน');
             return;
         }
 
@@ -1079,13 +1096,13 @@ async function pollLenderData(force = false) {
             cache: 'no-store'
         });
         if (res.status === 401 || res.status === 403 || res.redirected) {
-            window.location.href = 'login.php';
+            window.location.href = 'index.php';
             return;
         }
         if (res.ok) {
             const html = await res.text();
-            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
-                window.location.href = 'login.php';
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php') || html.includes('auth-card')) {
+                window.location.href = 'index.php';
                 return;
             }
             const pendingHeader = res.headers.get('X-Pending-Ext-Count');

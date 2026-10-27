@@ -4,13 +4,13 @@ require_once __DIR__ . '/auth.php';
 require_auth_and_role(['borrower', 'admin', 'super_admin']);
 $currentUser = current_user();
 $deptInfo = $currentUser;
-$deptSql = get_department_sql_condition($conn);
+$deptSql = ($currentUser['role'] === 'borrower') ? '' : get_department_sql_condition($conn);
 
 // ตรวจสอบและสร้างคอลัมน์ที่จำเป็นอัตโนมัติ
 $columns = [
     'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
-    'dept_seq' => "INT NOT NULL DEFAULT 1",
     'borrower_username' => "VARCHAR(100) NOT NULL DEFAULT ''",
+    'borrower_dept_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -127,6 +127,7 @@ function render_borrower_rows($result) {
             $searchCorpus = mb_strtolower(implode(' ', [
                 $row['dept_seq'] ?? $row['id'],
                 $row['id'],
+                $row['department'] ?? '',
                 $row['borrower_name'],
                 $row['borrower_phone'] ?: '',
                 $row['item_name'],
@@ -165,6 +166,9 @@ function render_borrower_rows($result) {
                     <div class="person"><?= e($row['item_name']) ?></div>
                     <?php if ($row['sub_item_name'] || $row['serial_number']): ?>
                         <div class="muted"><?= e($row['sub_item_name'] ?: $row['serial_number']) ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($row['department'])): ?>
+                        <div class="row-dept-badge" title="แผนกเจ้าของอุปกรณ์">อุปกรณ์ของ: <?= e($row['department']) ?></div>
                     <?php endif; ?>
                 </td>
                 <td class="duration-cell" data-start="<?= e(date('c', strtotime($row['record_time']))) ?>" data-end="<?= e($row['return_time'] ? date('c', strtotime($row['return_time'])) : '') ?>" data-days="<?= $dueDays ?>">
@@ -357,6 +361,7 @@ if (isset($_GET['ajax_table'])) {
         th:nth-child(10), th.col-manage, td.col-manage { width: 165px; min-width: 165px; }
 
         .col-seq { font-size: 1.15rem; font-weight: 900; color: var(--purple); letter-spacing: -.02em; }
+        .row-dept-badge { display: inline-block; padding: 2px 7px; background: #f1e9fc; color: var(--purple); border: 1px solid #d9cded; border-radius: 6px; font-size: .70rem; font-weight: 800; margin-top: 3px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .person { font-size: .95rem; font-weight: 800; color: var(--deep); }
         .muted { font-size: .80rem; color: #766a88; margin-top: 3px; }
         .duration-cell { font-size: .88rem; font-weight: 800; color: var(--deep); white-space: normal; line-height: 1.32; }
@@ -613,8 +618,12 @@ if (isset($_GET['ajax_table'])) {
             </div>
         </div>
         <div class="actions">
+<<<<<<< HEAD
             <a href="settings.php" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);box-shadow:none;padding:12px 16px;" title="ตั้งค่าระบบ">⚙️ ตั้งค่า</a>
             <a href="login.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+=======
+            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+>>>>>>> 92b0b40b6496aa7bfea488b0cb312c01058d1615
         </div>
     </div>
 
@@ -1011,13 +1020,13 @@ async function pollBorrowerData(force = false) {
             cache: 'no-store'
         });
         if (res.status === 401 || res.status === 403 || res.redirected) {
-            window.location.href = 'login.php';
+            window.location.href = 'index.php';
             return;
         }
         if (res.ok) {
             const html = await res.text();
-            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php')) {
-                window.location.href = 'login.php';
+            if (html.includes('<!DOCTYPE') || html.includes('<html') || html.includes('portal-header') || html.includes('login.php') || html.includes('auth-card')) {
+                window.location.href = 'index.php';
                 return;
             }
             const tbody = document.getElementById('borrowerTableBody');
