@@ -91,6 +91,7 @@ if (!function_exists('e')) {
 if (!function_exists('render_borrower_rows')) {
 function render_borrower_rows($result) {
     if ($result && $result->num_rows) {
+        $seq = 1;
         while ($row = $result->fetch_assoc()) {
             $borrowImages = image_list($row['image_path']);
             $returnImages = image_list($row['return_image_path']);
@@ -140,7 +141,7 @@ function render_borrower_rows($result) {
             ]));
             ?>
             <tr class="transaction-row" data-id="<?= (int)$row['id'] ?>" data-status="<?= e($status) ?>" data-returned="<?= $row['return_time'] ? '1' : '0' ?>" data-extension="<?= e($extStatus) ?>" data-search="<?= e($searchCorpus) ?>">
-                <td class="col-seq"><?= (int)($row['dept_seq'] ?? $row['id']) ?></td>
+                <td class="col-seq" data-dept-seq="<?= (int)($row['dept_seq'] ?? $row['id']) ?>"><?= $seq++ ?></td>
                 <td>
                     <div class="borrower-cell">
                         <?php if (!empty($row['borrower_image_path'])): ?>
@@ -815,7 +816,11 @@ function applyFilter() {
 
         const isVisible = statusMatch && searchMatch;
         row.style.display = isVisible ? '' : 'none';
-        if (isVisible) visibleCount++;
+        if (isVisible) {
+            visibleCount++;
+            const seqEl = row.querySelector('.col-seq');
+            if (seqEl) seqEl.textContent = visibleCount;
+        }
     });
 
     if (visibleCountEl) visibleCountEl.textContent = visibleCount;
