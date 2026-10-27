@@ -130,7 +130,7 @@ function render_lender_rows($result) {
                         <div class="borrower-info">
                             <div class="person"><?= e($row['borrower_name']) ?></div>
                             <?php if ($row['borrower_phone']): ?>
-                                <div class="muted">☎ <?= e($row['borrower_phone']) ?></div>
+                                <div class="muted"><?= e($row['borrower_phone']) ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
