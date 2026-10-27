@@ -109,6 +109,8 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITEMFLOW | รายละเอียดรายการ</title>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         :root {
             --purple: #4b2e83;

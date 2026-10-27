@@ -245,6 +245,8 @@ if (isset($_GET['ajax_table'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ITEMFLOW | ประวัติการยืมอุปกรณ์ (สำหรับผู้ยืม)</title>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
         /* PEA visual treatment - compact 80% scale (เหมือน history.php 100%) */
         :root {

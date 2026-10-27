@@ -74,7 +74,7 @@ if (isset($_GET['ajax_table'])) {
     exit;
 }
 ?>
-<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ITEMFLOW | ประวัติการยืม-คืน</title>
+<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ITEMFLOW | ประวัติการยืม-คืน</title><link rel="stylesheet" href="theme.css"><script src="theme.js"></script>
 <style>
 /* PEA visual treatment - compact 80% scale */
 :root{--purple:#4b2683;--deep:#250c50;--gold:#d9ac3b;--line:#e5dcef;--red:#ca4358;--green:#168457}

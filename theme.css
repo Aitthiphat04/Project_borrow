@@ -1,0 +1,517 @@
+/**
+ * theme.css - Global Dark Mode & Theme Styles for PEA Asset Care ITEMFLOW
+ */
+
+/* ==========================================================================
+   1. Dark Mode Variables
+   ========================================================================== */
+html[data-theme="dark"] {
+    --purple: #7a53be;
+    --deep: #160a2b;
+    --gold: #f0c353;
+    --gold-light: #fae8a6;
+    --line: #3b2c54;
+    --ink: #f5f0ff;
+    --text-main: #f5f0ff;
+    --text-muted: #b3a4cb;
+    --muted: #a898be;
+    --card-bg: #23173d;
+    --shell-bg: #1d1233;
+    --card-sub: #190f2d;
+    --input-bg: #180e2b;
+    --input-border: #4a3869;
+    --input-text: #f5f0ff;
+    --input-readonly: #261842;
+    --table-header: linear-gradient(135deg, #2b134d, #3c1e69);
+    --table-row-even: #180e2a;
+    --table-row-odd: #1f1337;
+    --table-row-hover: #2e1d4e;
+    --modal-bg: #23173d;
+    --modal-border: #463466;
+}
+
+/* ==========================================================================
+   2. Global Body & Backgrounds
+   ========================================================================== */
+html[data-theme="dark"] body {
+    background: radial-gradient(circle at 10% 15%, rgba(122, 83, 190, 0.25), transparent 22rem),
+                radial-gradient(circle at 90% 85%, rgba(22, 10, 43, 0.7), transparent 26rem),
+                linear-gradient(135deg, #100720 0%, #190e2f 50%, #110722 100%) !important;
+    color: var(--text-main) !important;
+}
+
+/* ==========================================================================
+   3. Shell, Top Header & Brand (history.php, lender.php, borrower.php, setting.php)
+   ========================================================================== */
+html[data-theme="dark"] main.shell {
+    background: var(--shell-bg) !important;
+    border-color: #3b2c54 !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] main.shell:before {
+    border-color: rgba(122, 83, 190, 0.08) !important;
+    box-shadow: 0 0 0 24px rgba(122, 83, 190, 0.05), 0 0 0 48px rgba(240, 195, 83, 0.05) !important;
+}
+
+html[data-theme="dark"] .shell .top {
+    background: linear-gradient(118deg, #150626, #32165b 58%, #4e297f) !important;
+    border-bottom: 5px solid var(--gold) !important;
+}
+
+/* ==========================================================================
+   4. Filter Toolbar, Chips, Search & Batch Bar
+   ========================================================================== */
+html[data-theme="dark"] .filter-toolbar {
+    background: var(--card-sub);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+}
+
+html[data-theme="dark"] .filter-title {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .chip {
+    background: #271a44 !important;
+    border-color: #4a3769 !important;
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] .chip:hover {
+    background: #342359 !important;
+    color: #fff !important;
+}
+
+html[data-theme="dark"] .chip.active {
+    background: linear-gradient(135deg, #643fa3, #432474) !important;
+    color: #fff !important;
+    border-color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .chip-pending {
+    background: #3a2212 !important;
+    color: #fca566 !important;
+    border-color: #63381a !important;
+}
+
+html[data-theme="dark"] .chip-overdue {
+    background: #3d141d !important;
+    color: #fda4af !important;
+    border-color: #6d2332 !important;
+}
+
+html[data-theme="dark"] .chip-good {
+    background: #143324 !important;
+    color: #86efac !important;
+    border-color: #1f543a !important;
+}
+
+html[data-theme="dark"] .chip-damaged {
+    background: #3b141d !important;
+    color: #fca5a5 !important;
+    border-color: #66212d !important;
+}
+
+html[data-theme="dark"] .filter-select,
+html[data-theme="dark"] .search-box input {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--input-text) !important;
+}
+
+html[data-theme="dark"] .filter-select:focus,
+html[data-theme="dark"] .search-box input:focus {
+    border-color: var(--purple) !important;
+    box-shadow: 0 0 0 3px rgba(122, 83, 190, 0.25) !important;
+}
+
+html[data-theme="dark"] .filter-select option {
+    background: #23173d;
+    color: #fff;
+}
+
+html[data-theme="dark"] .search-icon {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .batch-bar {
+    background: rgba(35, 23, 61, 0.96) !important;
+    border-color: #6d2d46 !important;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.6) !important;
+}
+
+html[data-theme="dark"] .select-all-label {
+    color: #f5f0ff !important;
+}
+
+html[data-theme="dark"] .batch-count {
+    background: #1a1030 !important;
+    border-color: #4b366a !important;
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] .batch-cancel {
+    background: #2c1d4a !important;
+    color: #d8ccee !important;
+    border-color: #4b366a !important;
+}
+
+/* ==========================================================================
+   5. Tables & Cells (history.php, lender.php, borrower.php)
+   ========================================================================== */
+html[data-theme="dark"] .table-wrap {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+html[data-theme="dark"] table {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] th {
+    background: var(--table-header) !important;
+    color: #f5edff !important;
+    border-bottom: 2px solid var(--line) !important;
+}
+
+html[data-theme="dark"] td {
+    border-top: 1px solid var(--line) !important;
+    color: #e5dbf5 !important;
+    background: var(--table-row-odd);
+}
+
+html[data-theme="dark"] tr:nth-child(even) td {
+    background: var(--table-row-even) !important;
+}
+
+html[data-theme="dark"] .table-wrap tbody tr:hover td {
+    background: var(--table-row-hover) !important;
+}
+
+html[data-theme="dark"] .borrower-avatar-placeholder {
+    background: linear-gradient(135deg, #372358, #4e337a) !important;
+    border-color: #5c3e8e !important;
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .borrower-avatar-btn {
+    background: #23173d !important;
+    border-color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .person {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .muted {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .row-dept-badge {
+    background: #2b1c48 !important;
+    border-color: #48346e !important;
+    color: #cfbfeb !important;
+}
+
+html[data-theme="dark"] .photo-btn {
+    background: #261942 !important;
+    border-color: #49356d !important;
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] .photo-btn:hover {
+    background: #342459 !important;
+    border-color: var(--purple) !important;
+}
+
+html[data-theme="dark"] .none {
+    background: #1e1333 !important;
+    color: #8c7d9f !important;
+    border-color: #382855 !important;
+}
+
+html[data-theme="dark"] .return-entry {
+    background: linear-gradient(135deg, #173827, #1f5038) !important;
+    border-color: #2e7a55 !important;
+    color: #86efac !important;
+}
+
+html[data-theme="dark"] .detail-action {
+    background: #2b1c4a !important;
+    border-color: #4a346f !important;
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] .detail-action:hover {
+    background: #38265f !important;
+    color: #fff !important;
+}
+
+html[data-theme="dark"] .edit-action {
+    background: #39281a !important;
+    border-color: #63432a !important;
+    color: #fcd34d !important;
+}
+
+html[data-theme="dark"] .edit-action:hover {
+    background: #4a3422 !important;
+}
+
+html[data-theme="dark"] .empty-row td {
+    color: var(--text-muted) !important;
+    background: var(--card-bg) !important;
+}
+
+/* ==========================================================================
+   6. Modals (Detail, Photo Viewer, Review Extension, Note Modal)
+   ========================================================================== */
+html[data-theme="dark"] .modal-box,
+html[data-theme="dark"] .camera-box,
+html[data-theme="dark"] .review-box,
+html[data-theme="dark"] .note-box,
+html[data-theme="dark"] .detail-box {
+    background: var(--modal-bg) !important;
+    border: 1px solid var(--modal-border) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7) !important;
+}
+
+html[data-theme="dark"] .modal-header,
+html[data-theme="dark"] .modal-footer {
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .modal-close,
+html[data-theme="dark"] .camera-close {
+    background: #322254 !important;
+    color: #e5dbf5 !important;
+}
+
+html[data-theme="dark"] .detail-grid,
+html[data-theme="dark"] .detail-item {
+    background: #1c1230 !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .detail-item .lbl {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .detail-item .val {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .note-textarea,
+html[data-theme="dark"] textarea.form-control {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--input-text) !important;
+}
+
+/* ==========================================================================
+   7. history_detail.php
+   ========================================================================== */
+html[data-theme="dark"] .page .topbar .title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .dept-header-card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .dept-card-icon {
+    background: linear-gradient(135deg, #372358, #4d337a) !important;
+    border-color: #5c3e8e !important;
+    color: #fae8a6 !important;
+}
+
+html[data-theme="dark"] .dept-card-heading {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .dept-card-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .dept-tag-badge {
+    background: #1c1130 !important;
+    border-color: #412f5a !important;
+}
+
+html[data-theme="dark"] .dept-tag-badge .tag-title {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .dept-tag-badge .tag-number {
+    color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+html[data-theme="dark"] .session-title {
+    color: #ffffff !important;
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .meta .item {
+    border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .meta .label {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .meta .value {
+    color: #f5f0ff !important;
+}
+
+html[data-theme="dark"] .gallery-grid .panel {
+    background: #1c1230 !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .gallery-grid .panel h3 {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .edit-card {
+    background: #251642 !important;
+    border-color: #4b366a !important;
+}
+
+html[data-theme="dark"] .edit-card h2 {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .edit-form select,
+html[data-theme="dark"] .edit-form textarea {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--input-text) !important;
+}
+
+/* ==========================================================================
+   8. borrow_form.php
+   ========================================================================== */
+html[data-theme="dark"] .app {
+    color: var(--text-main) !important;
+}
+
+html[data-theme="dark"] .body-card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .form-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] label {
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+    background: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--input-text) !important;
+}
+
+html[data-theme="dark"] .mode {
+    background: #1a1030 !important;
+    border-color: #412f5a !important;
+}
+
+html[data-theme="dark"] .mode button {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .mode button.active {
+    background: linear-gradient(135deg, #643fa3, #432474) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .gallery {
+    background: #1c1230 !important;
+    border-color: #483569 !important;
+}
+
+html[data-theme="dark"] .gallery-title {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .empty {
+    background: #170d29 !important;
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .photo-actions button {
+    background: #2e1e4d !important;
+    color: #d8ccee !important;
+}
+
+html[data-theme="dark"] .photo-actions button:last-child {
+    background: linear-gradient(135deg, var(--gold-light), var(--gold)) !important;
+    color: #250c50 !important;
+}
+
+html[data-theme="dark"] .return-help {
+    background: #392815 !important;
+    border-color: var(--gold) !important;
+    color: #fed7aa !important;
+}
+
+html[data-theme="dark"] .borrower-photo-display {
+    background: #1c1230 !important;
+}
+
+/* ==========================================================================
+   9. index.php & register.php
+   ========================================================================== */
+html[data-theme="dark"] .portal-card,
+html[data-theme="dark"] .auth-box,
+html[data-theme="dark"] .login-card {
+    background: var(--card-bg) !important;
+    border-color: var(--line) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .dept-select-wrap,
+html[data-theme="dark"] .user-select-item {
+    background: #1c1230 !important;
+    border-color: #3b2c55 !important;
+}
+
+html[data-theme="dark"] .user-select-item:hover {
+    background: #2b1a4a !important;
+}
+
+html[data-theme="dark"] .user-select-item.selected {
+    background: #351f5c !important;
+    border-color: var(--gold) !important;
+}
+
+html[data-theme="dark"] .nav-tabs-custom {
+    background: #1a1030 !important;
+    border-color: #412f5a !important;
+}
+
+html[data-theme="dark"] .nav-tab-btn {
+    color: var(--text-muted) !important;
+}
+
+html[data-theme="dark"] .nav-tab-btn.active {
+    background: linear-gradient(135deg, #643fa3, #432474) !important;
+    color: #ffffff !important;
+}
