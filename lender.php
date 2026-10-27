@@ -9,7 +9,8 @@ $deptSql = get_department_sql_condition($conn);
 // ตรวจสอบและสร้างคอลัมน์ที่จำเป็นอัตโนมัติ
 $columns = [
     'department' => "VARCHAR(150) NOT NULL DEFAULT 'แผนกโครงข่ายสื่อสารหลัก'",
-    'dept_seq' => "INT NOT NULL DEFAULT 1",
+    'borrower_username' => "VARCHAR(100) NOT NULL DEFAULT ''",
+    'borrower_dept_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'sub_item_name' => "VARCHAR(150) NOT NULL DEFAULT ''",
     'serial_number' => "VARCHAR(100) NOT NULL DEFAULT ''",
     'borrower_phone' => "VARCHAR(30) NOT NULL DEFAULT ''",
@@ -100,6 +101,7 @@ function render_lender_rows($result) {
                 $row['dept_seq'] ?? $row['id'],
                 $row['id'],
                 $row['borrower_name'],
+                $row['borrower_dept_name'] ?? '',
                 $row['borrower_phone'] ?: '',
                 $row['item_name'],
                 $row['sub_item_name'] ?: '',
@@ -127,8 +129,16 @@ function render_lender_rows($result) {
                         <?php endif; ?>
                         <div class="borrower-info">
                             <div class="person"><?= e($row['borrower_name']) ?></div>
+                            <?php if (!empty($row['borrower_dept_name'])): ?>
+                                <div class="borrower-dept-badge <?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? 'cross-dept' : '' ?>" title="สังกัดของผู้ยืมอุปกรณ์">
+                                    <span><?= e($row['borrower_dept_name']) ?></span>
+                                    <?php if (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']): ?>
+                                        <span class="cross-dept-tag">ยืมข้ามแผนก</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
                             <?php if ($row['borrower_phone']): ?>
-                                <div class="muted"><?= e($row['borrower_phone']) ?></div>
+                                <div class="muted">☎ <?= e($row['borrower_phone']) ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -350,6 +360,9 @@ if (isset($_GET['ajax_table'])) {
 
         .col-seq { font-size: 1.15rem; font-weight: 900; color: var(--purple); letter-spacing: -.02em; }
         .row-dept-badge { display: inline-block; padding: 2px 7px; background: #f1e9fc; color: var(--purple); border: 1px solid #d9cded; border-radius: 6px; font-size: .70rem; font-weight: 800; margin-top: 3px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .borrower-dept-badge { display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 700; color: #533e70; background: #f3ecfb; border: 1px solid #dfd0f2; border-radius: 6px; padding: 2px 6px; margin-top: 4px; max-width: 100%; line-height: 1.25; }
+        .borrower-dept-badge.cross-dept { color: #9c4100; background: #fff5e6; border-color: #ffd8a8; }
+        .cross-dept-tag { background: linear-gradient(135deg, #e65100, #c83200); color: #fff; font-size: .62rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; letter-spacing: .02em; white-space: nowrap; }
         .person { font-size: .95rem; font-weight: 800; color: var(--deep); }
         .muted { font-size: .80rem; color: #766a88; margin-top: 3px; }
         .duration-cell { font-size: .88rem; font-weight: 800; color: var(--deep); white-space: normal; line-height: 1.32; }

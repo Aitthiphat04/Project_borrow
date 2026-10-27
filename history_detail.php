@@ -429,14 +429,27 @@ $displayStatus = $labels[$status] ?? 'รอตรวจสอบ';
                         <?php endif; ?>
                         <div class="item" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #faf7ff; border: 1.5px solid #dfd2f3; padding: 12px 16px; border-radius: 12px;">
                             <div>
-                                <span class="label" style="color: var(--purple); font-weight: 800; font-size: .82rem;">สังกัดแผนก (Department)</span>
+                                <span class="label" style="color: var(--purple); font-weight: 800; font-size: .82rem;">แผนกเจ้าของอุปกรณ์ (Owner Department)</span>
                                 <div class="value" style="font-size: 1.15rem; font-weight: 900; color: var(--purple); margin-top: 2px;"><?= e($row['department'] ?: 'แผนกโครงข่ายสื่อสารหลัก') ?></div>
                             </div>
                             <div style="font-size: .84rem; font-weight: 800; color: #766392; background: #ede3f9; padding: 4px 10px; border-radius: 8px;">ลำดับในแผนก: #<?= (int)($row['dept_seq'] ?? $row['id']) ?></div>
                         </div>
                         <div class="item"><span class="label">ลำดับในแผนก</span><span class="value"><?= (int)($row['dept_seq'] ?? $row['id']) ?></span></div>
                         <div class="item"><span class="label">รหัสอ้างอิงระบบ</span><span class="value">#<?= (int)$row['id'] ?></span></div>
-                        <div class="item"><span class="label">ชื่อผู้ยืม</span><span class="value"><?= e($row['borrower_name']) ?></span></div>
+                        <div class="item">
+                            <span class="label">ชื่อผู้ยืม</span>
+                            <span class="value"><?= e($row['borrower_name']) ?></span>
+                            <?php if (!empty($row['borrower_dept_name'])): ?>
+                                <div style="margin-top:6px;">
+                                    <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:6px;font-size:0.80rem;font-weight:700;background:<?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? '#fff5e6' : '#f3ecfb' ?>;color:<?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? '#9c4100' : '#533e70' ?>;border:1px solid <?= (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']) ? '#ffd8a8' : '#dfd0f2' ?>;">
+                                        สังกัด: <?= e($row['borrower_dept_name']) ?>
+                                        <?php if (!empty($row['department']) && $row['borrower_dept_name'] !== $row['department']): ?>
+                                            <span style="background:linear-gradient(135deg,#e65100,#c83200);color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:4px;font-weight:800;">ยืมข้ามแผนก</span>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                         <div class="item"><span class="label">เบอร์ผู้ยืม</span><span class="value"><?= e($row['borrower_phone'] ?: '-') ?></span></div>
                         <div class="item"><span class="label">ผู้ให้ยืม</span><span class="value"><?= e($row['lender_name'] ?: '-') ?></span></div>
                         <div class="item"><span class="label">ชื่ออุปกรณ์</span><span class="value"><?= e($row['item_name']) ?></span></div>
