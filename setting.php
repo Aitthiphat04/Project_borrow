@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// หน้าหลักที่ผู้ใช้จะย้อนกลับไปตามสิทธิ์
+// ลิงก์ย้อนกลับตามบทบาท
 $backUrl = 'index.php';
 if ($currentUser['role'] === 'lender') {
     $backUrl = 'lender.php';
@@ -88,346 +88,787 @@ $avatarChar = mb_substr($currentUser['full_name'] ?: $currentUser['username'] ?:
 ?>
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตั้งค่าผู้ใช้งาน | ITEMFLOW</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- ฟอนต์ Kanit -->
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    <title>ITEMFLOW | ตั้งค่าระบบ</title>
     <style>
         :root {
-            --bg-color: #f5edf8;
-            --card-bg: white;
-            --text-color: #333;
-            --text-muted: #6c757d;
-            --navbar-bg: #4b2f89;
-            --sidebar-hover: #f7f3fb;
-            --border-color: #e0dced;
-            --input-bg: white;
-            --input-text: #333;
-            --input-placeholder: #adb5bd;
+            --purple: #4b2683;
+            --deep: #250c50;
+            --gold: #d9ac3b;
+            --gold-light: #fae188;
+            --line: #e5dcef;
+            --red: #ca4358;
+            --green: #168457;
+            --shell-bg: #fffdfefa;
+            --card-bg: #ffffff;
+            --card-sub: #fbf9ff;
+            --text-main: #2e2840;
+            --text-muted: #6b5d82;
+            --input-bg: #ffffff;
+            --input-border: #d8cdea;
+            --input-text: #2e2840;
+            --input-readonly: #f4f0fa;
         }
 
-        /* โหมดมืด (Dark Mode) */
-        [data-theme="dark"] {
-            --bg-color: #1a1a2e;
-            --card-bg: #252542;
-            --text-color: #f8f9fa;
-            --text-muted: #b0b0c0;
-            --navbar-bg: #301b5e;
-            --sidebar-hover: #35355e;
-            --border-color: #44446b;
-            --input-bg: #1a1a2e;
-            --input-text: #ffffff;
-            --input-placeholder: #7a7a9d;
+        /* Dark Mode Theme */
+        html[data-theme="dark"] {
+            --purple: #7952b3;
+            --deep: #160a2c;
+            --gold: #f0c353;
+            --gold-light: #fae8a6;
+            --line: #3f315a;
+            --shell-bg: #1e1333;
+            --card-bg: #271a42;
+            --card-sub: #201438;
+            --text-main: #f5f0ff;
+            --text-muted: #b9accf;
+            --input-bg: #1c1230;
+            --input-border: #4d3a6e;
+            --input-text: #f8f6fc;
+            --input-readonly: #281b43;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Kanit', sans-serif;
+            min-height: 100vh;
             margin: 0;
-            padding: 20px 0;
-            transition: background-color 0.3s, color 0.3s;
+            background: radial-gradient(circle at 5% 10%, #f9e8ac9c, transparent 19rem),
+                        radial-gradient(circle at 96% 87%, #4b268340, transparent 24rem),
+                        linear-gradient(135deg, #eee8f8 0%, #faf6ff 48%, #fffaf0 100%);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: var(--text-main);
+            padding: 16px 10px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .top-navbar-card {
-            background-color: var(--navbar-bg);
-            color: white;
-            border-radius: 16px;
-            padding: 15px 30px;
-            max-width: 95%;
-            margin: 0 auto 25px auto;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        html[data-theme="dark"] body {
+            background: radial-gradient(circle at 5% 10%, #4b268350, transparent 22rem),
+                        radial-gradient(circle at 96% 87%, #250c5070, transparent 24rem),
+                        linear-gradient(135deg, #120924 0%, #1a0f30 48%, #140b26 100%);
         }
 
-        .btn-custom-yellow {
-            background-color: #f6c23e;
-            color: #333;
-            border: none;
-            border-radius: 25px;
-            padding: 8px 25px;
-            font-weight: 600;
-            transition: filter 0.2s, transform 0.15s;
+        main.shell {
+            position: relative;
+            overflow: hidden;
+            max-width: 98%;
+            width: min(1180px, 98%);
+            margin: 14px auto;
+            background: var(--shell-bg);
+            border-radius: 22px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 50px rgba(52, 20, 87, 0.16);
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
-        .btn-custom-yellow:hover {
-            background-color: #e5b337;
-            filter: brightness(1.05);
-            transform: translateY(-1px);
-        }
-
-        .settings-container {
-            max-width: 95%;
-            margin: 0 auto;
-        }
-
-        .card-custom {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .nav-pills .nav-link {
-            color: #5c3b99;
-            border-radius: 10px;
-            padding: 12px 20px;
-            margin-bottom: 8px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        [data-theme="dark"] .nav-pills .nav-link {
-            color: #d8ccee;
-        }
-
-        .nav-pills .nav-link:hover {
-            background-color: var(--sidebar-hover);
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: #5c3b99;
-            color: white !important;
-        }
-
-        [data-theme="dark"] .nav-pills .nav-link.active {
-            background-color: #6a44b8;
-        }
-
-        .form-control,
-        .form-select {
-            background-color: var(--input-bg);
-            color: var(--input-text);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            background-color: var(--input-bg);
-            color: var(--input-text);
-            border-color: #a980ff;
-            box-shadow: 0 0 0 0.2rem rgba(169, 128, 255, 0.25);
-        }
-
-        .form-control::placeholder {
-            color: var(--input-placeholder);
-            opacity: 1;
-        }
-
-        [data-theme="dark"] select option {
-            background-color: #252542;
-            color: white;
-        }
-
-        .avatar-preview {
-            width: 90px;
-            height: 90px;
+        main.shell:before {
+            content: "";
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            top: -240px;
+            right: -90px;
+            border: 24px solid rgba(75, 38, 131, 0.04);
             border-radius: 50%;
-            background: linear-gradient(135deg, #ede4f8, #dfd0f4);
-            border: 2px solid #5c3b99;
+            box-shadow: 0 0 0 24px rgba(75, 38, 131, 0.03), 0 0 0 48px rgba(217, 172, 59, 0.04);
+            pointer-events: none;
+        }
+
+        .shell .top {
+            position: relative;
+            margin: -20px -20px 22px;
+            padding: 18px 22px;
+            background: linear-gradient(118deg, #250c50, #4b2683 58%, #7653a7);
+            color: #fff;
+            border-bottom: 5px solid var(--gold);
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
             display: flex;
             align-items: center;
+            gap: 14px;
+        }
+
+        .pea-logo {
+            width: 70px;
+            height: 70px;
+            flex: none;
+            object-fit: contain;
+            border-radius: 50%;
+            filter: drop-shadow(0 4px 7px rgba(19, 6, 42, 0.35));
+        }
+
+        .brand-name {
+            font-size: .82rem;
+            letter-spacing: .1em;
+            color: #f8e9bb;
+            font-weight: 800;
+        }
+
+        .brand-name b {
+            display: inline-block;
+            font-size: 1.25rem;
+            letter-spacing: .06em;
+            line-height: 1;
+            margin-left: 8px;
+            vertical-align: middle;
+            text-shadow: 0 2px 8px rgba(24, 7, 49, 0.3);
+            color: #fff;
+        }
+
+        .top h1 {
+            margin: 4px 0 0;
+            color: #fff;
+            font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+            font-weight: 900;
+            letter-spacing: .02em;
+        }
+
+        .shell .subtitle {
+            margin: 4px 0 0;
+            color: #eee5f9;
+            font-size: .86rem;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-top {
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            border-radius: 13px;
+            padding: 11px 20px;
+            font: inherit;
+            font-size: .95rem;
+            font-weight: 800;
+            letter-spacing: .02em;
+            cursor: pointer;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.16);
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            text-decoration: none;
+            line-height: 1;
+            transition: transform .18s, filter .18s, background .18s;
+        }
+
+        .btn-top:hover {
+            background: rgba(255, 255, 255, 0.26);
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        /* Alerts */
+        .alert-box {
+            padding: 13px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: .92rem;
             font-weight: 700;
-            color: #5c3b99;
-            box-shadow: 0 4px 12px rgba(92, 59, 153, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn .2s ease;
         }
 
-        [data-theme="dark"] .avatar-preview {
-            background: #442a75;
-            border-color: #a980ff;
-            color: #eaddf5;
+        .alert-success {
+            background: #eefbf4;
+            border: 1px solid #b7ebd0;
+            border-left: 5px solid var(--green);
+            color: var(--green);
         }
 
-        .text-dark-custom {
-            color: var(--text-color) !important;
+        .alert-danger {
+            background: #fff0f3;
+            border: 1px solid #fecdd6;
+            border-left: 5px solid var(--red);
+            color: #a82038;
         }
 
-        .text-muted-custom {
-            color: var(--text-muted) !important;
+        html[data-theme="dark"] .alert-success {
+            background: #153326;
+            border-color: #245740;
+            color: #6ee7b7;
+        }
+
+        html[data-theme="dark"] .alert-danger {
+            background: #3b141d;
+            border-color: #662332;
+            color: #fda4af;
+        }
+
+        .alert-close {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-size: 1.3rem;
+            font-weight: 800;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        /* Settings Grid Layout */
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 820px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar Nav Tabs */
+        .settings-nav {
+            background: var(--card-sub);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav-item {
+            border: 0;
+            background: transparent;
+            color: var(--text-muted);
+            font: inherit;
+            font-size: .95rem;
+            font-weight: 800;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all .18s ease;
+        }
+
+        .nav-item:hover {
+            background: rgba(75, 38, 131, 0.07);
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--deep), var(--purple));
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(75, 38, 131, 0.25);
+        }
+
+        /* Settings Card & Panes */
+        .settings-card {
+            background: var(--card-bg);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 26px;
+            box-shadow: 0 8px 24px rgba(75, 38, 131, 0.05);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn .2s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .pane-header {
+            margin-bottom: 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .pane-title {
+            margin: 0 0 4px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .pane-desc {
+            margin: 0;
+            font-size: .86rem;
+            color: var(--text-muted);
+        }
+
+        /* Profile Header */
+        .profile-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .avatar-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ede4f8, #dfd0f4);
+            border: 3px solid var(--gold);
+            color: var(--purple);
+            font-size: 1.9rem;
+            font-weight: 900;
+            display: grid;
+            place-items: center;
+            flex: none;
+            box-shadow: 0 4px 12px rgba(75, 38, 131, 0.15);
+        }
+
+        html[data-theme="dark"] .avatar-box {
+            background: linear-gradient(135deg, #38245a, #4d337a);
+            color: #fae8a6;
+            border-color: var(--gold);
+        }
+
+        .profile-meta h3 {
+            margin: 0 0 4px;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .role-tag {
+            display: inline-block;
+            background: rgba(75, 38, 131, 0.1);
+            border: 1px solid rgba(75, 38, 131, 0.2);
+            color: var(--purple);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 800;
+        }
+
+        html[data-theme="dark"] .role-tag {
+            background: rgba(240, 195, 83, 0.15);
+            border-color: rgba(240, 195, 83, 0.35);
+            color: var(--gold);
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: .88rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border: 1.5px solid var(--input-border);
+            border-radius: 11px;
+            padding: 10px 14px;
+            font: inherit;
+            font-size: .94rem;
+            font-weight: 600;
+            color: var(--input-text);
+            background: var(--input-bg);
+            transition: border-color .18s, box-shadow .18s, background .18s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(75, 38, 131, 0.18);
+        }
+
+        .form-control[readonly] {
+            background: var(--input-readonly);
+            cursor: not-allowed;
+            color: var(--text-muted);
+        }
+
+        /* Primary Action Button */
+        .btn-submit {
+            border: 0;
+            border-radius: 12px;
+            padding: 12px 26px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            color: #2a174d;
+            font: inherit;
+            font-size: .96rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(217, 172, 59, 0.28);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform .18s, filter .18s, box-shadow .18s;
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.07);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(217, 172, 59, 0.4);
+        }
+
+        /* Theme Selector Cards (NO EMOJIS) */
+        .theme-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .theme-card {
+            border: 2px solid var(--line);
+            background: var(--card-sub);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all .2s ease;
+            position: relative;
+        }
+
+        .theme-card:hover {
+            border-color: var(--purple);
+            transform: translateY(-2px);
+        }
+
+        .theme-card.active {
+            border-color: var(--gold);
+            box-shadow: 0 6px 18px rgba(217, 172, 59, 0.22);
+            background: rgba(217, 172, 59, 0.05);
+        }
+
+        .theme-preview {
+            height: 90px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .preview-light {
+            background: #fbf9fe;
+        }
+
+        .preview-light .mock-nav {
+            height: 20px;
+            border-radius: 4px;
+            background: #4b2683;
+            border-bottom: 2px solid #d9ac3b;
+        }
+
+        .preview-light .mock-line {
+            height: 8px;
+            border-radius: 3px;
+            background: #e7def2;
+            width: 70%;
+        }
+
+        .preview-light .mock-card {
+            height: 36px;
+            border-radius: 4px;
+            background: #ffffff;
+            border: 1px solid #e1d4ef;
+        }
+
+        .preview-dark {
+            background: #170d29;
+        }
+
+        .preview-dark .mock-nav {
+            height: 20px;
+            border-radius: 4px;
+            background: #250c50;
+            border-bottom: 2px solid #d9ac3b;
+        }
+
+        .preview-dark .mock-line {
+            height: 8px;
+            border-radius: 3px;
+            background: #443063;
+            width: 70%;
+        }
+
+        .preview-dark .mock-card {
+            height: 36px;
+            border-radius: 4px;
+            background: #25183f;
+            border: 1px solid #3d285e;
+        }
+
+        .theme-label-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .theme-title {
+            font-size: .95rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .theme-check-indicator {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--text-muted);
+            display: grid;
+            place-items: center;
+        }
+
+        .theme-card.active .theme-check-indicator {
+            border-color: var(--gold);
+            background: var(--gold);
+        }
+
+        .theme-card.active .theme-check-indicator:after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #250c50;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-
 <body>
 
-    <div class="top-navbar-card d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center">
-            <a href="<?= htmlspecialchars($backUrl) ?>" class="text-decoration-none d-flex align-items-center">
-                <div class="bg-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    <img src="pea-logo.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain;" onerror="this.src='https://upload.wikimedia.org/wikipedia/th/thumb/a/a4/Provincial_Electricity_Authority_Logo.svg/800px-Provincial_Electricity_Authority_Logo.svg.png'">
-                </div>
-                <div>
-                    <h4 class="m-0 fw-bold text-white">ตั้งค่าระบบ</h4>
-                    <div style="font-size: 0.8rem; color: #d8ccee;">จัดการข้อมูลส่วนตัวและการแสดงผล (<?= htmlspecialchars($currentUser['dept_name']) ?>)</div>
-                </div>
-            </a>
-        </div>
+<main class="shell">
+    <div class="top">
         <div>
-            <a href="<?= htmlspecialchars($backUrl) ?>" class="btn btn-light fw-bold" style="border-radius: 25px; padding: 8px 20px; color: #4b2f89;">กลับหน้าหลัก</a>
+            <div class="brand">
+                <img class="pea-logo" src="pea-logo.png" alt="ตราสัญลักษณ์ PEA" onerror="this.src='https://upload.wikimedia.org/wikipedia/th/thumb/a/a4/Provincial_Electricity_Authority_Logo.svg/800px-Provincial_Electricity_Authority_Logo.svg.png'">
+                <div>
+                    <div class="brand-name">PEA ASSET CARE <b>ITEMFLOW</b></div>
+                    <h1>ตั้งค่าระบบ</h1>
+                    <p class="subtitle">จัดการข้อมูลส่วนตัวและการแสดงผล (<?= htmlspecialchars($currentUser['dept_name']) ?>)</p>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <a href="<?= htmlspecialchars($backUrl) ?>" class="btn-top" title="กลับหน้าหลัก">กลับหน้าหลัก</a>
         </div>
     </div>
 
-    <div class="settings-container">
-        <?php if (!empty($msgSuccess)): ?>
-            <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
-                <?= htmlspecialchars($msgSuccess) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+    <?php if (!empty($msgSuccess)): ?>
+        <div class="alert-box alert-success" id="alertSuccess">
+            <span><?= htmlspecialchars($msgSuccess) ?></span>
+            <button type="button" class="alert-close" onclick="document.getElementById('alertSuccess').remove()">&times;</button>
+        </div>
+    <?php endif; ?>
 
-        <?php if (!empty($msgError)): ?>
-            <div class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
-                <?= htmlspecialchars($msgError) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
+    <?php if (!empty($msgError)): ?>
+        <div class="alert-box alert-danger" id="alertError">
+            <span><?= htmlspecialchars($msgError) ?></span>
+            <button type="button" class="alert-close" onclick="document.getElementById('alertError').remove()">&times;</button>
+        </div>
+    <?php endif; ?>
 
-        <div class="row">
-            <!-- Sidebar Menu -->
-            <div class="col-md-3 mb-4">
-                <div class="card card-custom p-3">
-                    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                        <button class="nav-link active text-start fw-bold" data-bs-toggle="pill" data-bs-target="#v-pills-profile" type="button" role="tab">👤 ข้อมูลส่วนตัว</button>
-                        <button class="nav-link text-start fw-bold" data-bs-toggle="pill" data-bs-target="#v-pills-display" type="button" role="tab">🎨 การแสดงผล</button>
-                        <button class="nav-link text-start fw-bold" data-bs-toggle="pill" data-bs-target="#v-pills-security" type="button" role="tab">🔒 ความปลอดภัย</button>
+    <div class="settings-layout">
+        <!-- Sidebar Navigation Tabs (No Emojis) -->
+        <div class="settings-nav">
+            <button type="button" class="nav-item active" data-tab="tab-profile">
+                <span>ข้อมูลส่วนตัว</span>
+            </button>
+            <button type="button" class="nav-item" data-tab="tab-display">
+                <span>การแสดงผล</span>
+            </button>
+            <button type="button" class="nav-item" data-tab="tab-security">
+                <span>ความปลอดภัย</span>
+            </button>
+        </div>
+
+        <!-- Settings Content Card -->
+        <div class="settings-card">
+
+            <!-- 1. ข้อมูลส่วนตัว (Profile) -->
+            <div class="tab-pane active" id="tab-profile">
+                <div class="pane-header">
+                    <h2 class="pane-title">ข้อมูลส่วนตัว</h2>
+                    <p class="pane-desc">จัดการข้อมูลผู้ใช้งานและเบอร์โทรศัพท์สำหรับติดต่อรับพัสดุ</p>
+                </div>
+
+                <div class="profile-badge-row">
+                    <div class="avatar-box"><?= htmlspecialchars($avatarChar) ?></div>
+                    <div class="profile-meta">
+                        <h3><?= htmlspecialchars($currentUser['full_name']) ?></h3>
+                        <span class="role-tag"><?= htmlspecialchars($currentUser['role_title']) ?></span>
+                    </div>
+                </div>
+
+                <form method="POST" action="setting.php">
+                    <input type="hidden" name="action" value="update_profile">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">ชื่อ-นามสกุล</label>
+                            <input type="text" name="full_name" class="form-control" value="<?= htmlspecialchars($currentUser['full_name']) ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ชื่อผู้ใช้งาน (Username / รหัส)</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($currentUser['username']) ?>" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">เบอร์โทรศัพท์ (สำหรับติดต่อรับของ)</label>
+                            <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($currentUser['phone']) ?>" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="เช่น 0812345678" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">สังกัดแผนก / หน่วยงาน</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($currentUser['dept_name']) ?>" readonly>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">บันทึกการเปลี่ยนแปลง</button>
+                </form>
+            </div>
+
+            <!-- 2. การแสดงผล (Display / Theme - No Emojis) -->
+            <div class="tab-pane" id="tab-display">
+                <div class="pane-header">
+                    <h2 class="pane-title">การแสดงผล</h2>
+                    <p class="pane-desc">เลือกโทนสีการแสดงผลของหน้าจอระบบ</p>
+                </div>
+
+                <div class="theme-picker">
+                    <div class="theme-card" id="themeLightCard" onclick="applyTheme('light')">
+                        <div class="theme-preview preview-light">
+                            <div class="mock-nav"></div>
+                            <div class="mock-line"></div>
+                            <div class="mock-card"></div>
+                        </div>
+                        <div class="theme-label-wrap">
+                            <span class="theme-title">โหมดสว่าง (Light Mode)</span>
+                            <span class="theme-check-indicator"></span>
+                        </div>
+                    </div>
+
+                    <div class="theme-card" id="themeDarkCard" onclick="applyTheme('dark')">
+                        <div class="theme-preview preview-dark">
+                            <div class="mock-nav"></div>
+                            <div class="mock-line"></div>
+                            <div class="mock-card"></div>
+                        </div>
+                        <div class="theme-label-wrap">
+                            <span class="theme-title">โหมดมืด (Dark Mode)</span>
+                            <span class="theme-check-indicator"></span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content Area -->
-            <div class="col-md-9">
-                <div class="card card-custom p-4">
-                    <div class="tab-content">
-
-                        <!-- 1. ข้อมูลส่วนตัว -->
-                        <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel">
-                            <h4 class="fw-bold mb-4 text-dark-custom">ข้อมูลส่วนตัว (Profile)</h4>
-                            <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--border-color);">
-                                <div class="avatar-preview me-4"><?= htmlspecialchars($avatarChar) ?></div>
-                                <div>
-                                    <h5 class="fw-bold mb-1 text-dark-custom"><?= htmlspecialchars($currentUser['full_name']) ?></h5>
-                                    <div class="text-muted-custom" style="font-size: 0.9rem;">สถานะ: <span class="badge bg-purple" style="background:#5c3b99;"><?= htmlspecialchars($currentUser['role_title']) ?></span></div>
-                                </div>
-                            </div>
-                            <form method="POST" action="setting.php">
-                                <input type="hidden" name="action" value="update_profile">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">ชื่อ-นามสกุล</label>
-                                        <input type="text" name="full_name" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['full_name']) ?>" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">ชื่อผู้ใช้งาน (Username / รหัส)</label>
-                                        <input type="text" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['username']) ?>" readonly style="background-color: rgba(0,0,0,0.05);">
-                                    </div>
-                                </div>
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">เบอร์โทรศัพท์ (สำหรับติดต่อรับของ)</label>
-                                        <input type="text" name="phone" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['phone']) ?>" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="เช่น 0812345678" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">สังกัดแผนก / หน่วยงาน</label>
-                                        <input type="text" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['dept_name']) ?>" readonly style="background-color: rgba(0,0,0,0.05);">
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-custom-yellow px-4 fw-bold">บันทึกการเปลี่ยนแปลง</button>
-                            </form>
-                        </div>
-
-                        <!-- 2. การแสดงผล (Theme) -->
-                        <div class="tab-pane fade" id="v-pills-display" role="tabpanel">
-                            <h4 class="fw-bold mb-4 text-dark-custom">การแสดงผล (Display)</h4>
-                            <div class="mb-4 pb-3" style="border-bottom: 1px solid var(--border-color);">
-                                <label class="form-label text-muted-custom fw-bold mb-3">เลือกโหมดหน้าจอ (Theme)</label>
-                                <div class="d-flex gap-3">
-                                    <div class="border rounded p-3 text-center" id="theme-light-btn" style="width: 140px; cursor: pointer; background-color: #f8f9fa; border-color: #dee2e6; transition: 0.2s;">
-                                        <div class="fs-2 mb-2">☀️</div>
-                                        <div class="fw-bold text-dark">Light mode</div>
-                                    </div>
-                                    <div class="border rounded p-3 text-center" id="theme-dark-btn" style="width: 140px; cursor: pointer; background-color: #212529; color: white; border-color: #212529; transition: 0.2s;">
-                                        <div class="fs-2 mb-2">🌙</div>
-                                        <div class="fw-bold">Dark mode</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. ความปลอดภัย -->
-                        <div class="tab-pane fade" id="v-pills-security" role="tabpanel">
-                            <h4 class="fw-bold mb-4 text-dark-custom">ความปลอดภัย (Security)</h4>
-                            <form method="POST" action="setting.php">
-                                <input type="hidden" name="action" value="change_password">
-                                <div class="mb-4">
-                                    <h6 class="fw-bold text-muted-custom mb-3">เปลี่ยนรหัสผ่าน</h6>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label text-muted-custom fw-bold">รหัสผ่านปัจจุบัน</label>
-                                            <input type="password" name="current_password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านปัจจุบัน" required>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label text-muted-custom fw-bold">รหัสผ่านใหม่</label>
-                                            <input type="password" name="new_password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label text-muted-custom fw-bold">ยืนยันรหัสผ่านใหม่</label>
-                                            <input type="password" name="confirm_password" class="form-control fw-bold" placeholder="ยืนยันรหัสผ่านใหม่" required>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-custom-yellow px-4 mt-2 fw-bold">อัปเดตรหัสผ่าน</button>
-                                </div>
-                            </form>
-                        </div>
-
-                    </div>
+            <!-- 3. ความปลอดภัย (Security) -->
+            <div class="tab-pane" id="tab-security">
+                <div class="pane-header">
+                    <h2 class="pane-title">ความปลอดภัย</h2>
+                    <p class="pane-desc">เปลี่ยนรหัสผ่านเพื่อความปลอดภัยในการเข้าใช้งานระบบ</p>
                 </div>
+
+                <form method="POST" action="setting.php">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-grid" style="grid-template-columns: 1fr; max-width: 480px;">
+                        <div class="form-group">
+                            <label class="form-label">รหัสผ่านปัจจุบัน</label>
+                            <input type="password" name="current_password" class="form-control" placeholder="กรอกรหัสผ่านปัจจุบัน" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">รหัสผ่านใหม่</label>
+                            <input type="password" name="new_password" class="form-control" placeholder="รหัสผ่านใหม่อย่างน้อย 4 ตัวอักษร" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">อัปเดตรหัสผ่าน</button>
+                </form>
             </div>
+
         </div>
     </div>
+</main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // ระบบสลับโหมดหน้าจอ (Dark / Light Mode)
-        const htmlEl = document.documentElement;
-        const btnLight = document.getElementById('theme-light-btn');
-        const btnDark = document.getElementById('theme-dark-btn');
+<script>
+    // Tab switching logic
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabPanes = document.querySelectorAll('.tab-pane');
 
-        // โหลดค่า Theme เดิมที่บันทึกไว้
-        const savedTheme = localStorage.getItem('itemflow_theme') || 'light';
-        setTheme(savedTheme);
+    navItems.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-tab');
+            navItems.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
 
-        btnLight.addEventListener('click', () => setTheme('light'));
-        btnDark.addEventListener('click', () => setTheme('dark'));
+            btn.classList.add('active');
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) targetPane.classList.add('active');
+        });
+    });
 
-        function setTheme(theme) {
-            if (theme === 'dark') {
-                htmlEl.setAttribute('data-theme', 'dark');
-                btnDark.style.border = '2px solid #a980ff';
-                btnDark.style.boxShadow = '0 0 10px rgba(169, 128, 255, 0.3)';
-                btnLight.style.border = '1px solid #dee2e6';
-                btnLight.style.boxShadow = 'none';
-            } else {
-                htmlEl.removeAttribute('data-theme');
-                btnLight.style.border = '2px solid #5c3b99';
-                btnLight.style.boxShadow = '0 0 10px rgba(92, 59, 153, 0.2)';
-                btnDark.style.border = '1px solid #212529';
-                btnDark.style.boxShadow = 'none';
-            }
-            localStorage.setItem('itemflow_theme', theme);
+    // Theme switching logic (No Emojis)
+    const htmlEl = document.documentElement;
+    const cardLight = document.getElementById('themeLightCard');
+    const cardDark = document.getElementById('themeDarkCard');
+
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            htmlEl.setAttribute('data-theme', 'dark');
+            cardDark.classList.add('active');
+            cardLight.classList.remove('active');
+        } else {
+            htmlEl.removeAttribute('data-theme');
+            cardLight.classList.add('active');
+            cardDark.classList.remove('active');
         }
-    </script>
-</body>
+        localStorage.setItem('itemflow_theme', theme);
+    }
 
+    // Load saved theme
+    const savedTheme = localStorage.getItem('itemflow_theme') || 'light';
+    applyTheme(savedTheme);
+</script>
+</body>
 </html>
