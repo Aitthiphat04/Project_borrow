@@ -1,3 +1,91 @@
+<?php
+// setting.php - หน้าตั้งค่าระบบ ข้อมูลส่วนตัว และการแสดงผล PEA ITEMFLOW
+require_once __DIR__ . '/auth.php';
+
+// บังคับล็อกอินก่อนเข้าหน้าตั้งค่า
+require_auth_and_role();
+$currentUser = current_user();
+
+$msgSuccess = '';
+$msgError = '';
+
+// จัดการเมื่อมีการส่งฟอร์มบันทึกข้อมูล
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+
+    if ($action === 'update_profile') {
+        $fullName = trim((string)($_POST['full_name'] ?? ''));
+        $phone = preg_replace('/\D/', '', trim((string)($_POST['phone'] ?? '')));
+
+        if (empty($fullName)) {
+            $msgError = 'กรุณากรอกชื่อ-นามสกุล';
+        } elseif (empty($phone) || strlen($phone) !== 10) {
+            $msgError = 'กรุณากรอกเบอร์โทรศัพท์เป็นตัวเลข 10 หลัก';
+        } else {
+            $userId = (int)$currentUser['id'];
+            $stmt = $conn->prepare("UPDATE department_users SET full_name = ?, phone = ? WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param("ssi", $fullName, $phone, $userId);
+                if ($stmt->execute()) {
+                    $_SESSION['full_name'] = $fullName;
+                    $_SESSION['phone'] = $phone;
+                    $currentUser['full_name'] = $fullName;
+                    $currentUser['phone'] = $phone;
+                    $msgSuccess = 'บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว';
+                } else {
+                    $msgError = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' . $conn->error;
+                }
+                $stmt->close();
+            }
+        }
+    } elseif ($action === 'change_password') {
+        $currentPass = (string)($_POST['current_password'] ?? '');
+        $newPass = (string)($_POST['new_password'] ?? '');
+        $confirmPass = (string)($_POST['confirm_password'] ?? '');
+
+        if (empty($currentPass) || empty($newPass)) {
+            $msgError = 'กรุณากรอกรหัสผ่านให้ครบถ้วน';
+        } elseif (strlen($newPass) < 4) {
+            $msgError = 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร';
+        } elseif ($newPass !== $confirmPass) {
+            $msgError = 'รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน';
+        } else {
+            $userId = (int)$currentUser['id'];
+            $res = $conn->query("SELECT password FROM department_users WHERE id = $userId LIMIT 1");
+            if ($res && $row = $res->fetch_assoc()) {
+                $stored = $row['password'];
+                if (password_verify($currentPass, $stored) || $currentPass === $stored) {
+                    $newHash = password_hash($newPass, PASSWORD_DEFAULT);
+                    $stmt = $conn->prepare("UPDATE department_users SET password = ? WHERE id = ?");
+                    if ($stmt) {
+                        $stmt->bind_param("si", $newHash, $userId);
+                        if ($stmt->execute()) {
+                            $msgSuccess = 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว';
+                        } else {
+                            $msgError = 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน';
+                        }
+                        $stmt->close();
+                    }
+                } else {
+                    $msgError = 'รหัสผ่านปัจจุบันไม่ถูกต้อง';
+                }
+            }
+        }
+    }
+}
+
+// หน้าหลักที่ผู้ใช้จะย้อนกลับไปตามสิทธิ์
+$backUrl = 'index.php';
+if ($currentUser['role'] === 'lender') {
+    $backUrl = 'lender.php';
+} elseif ($currentUser['role'] === 'borrower') {
+    $backUrl = 'borrower.php';
+} elseif ($currentUser['role'] === 'admin' || $currentUser['role'] === 'super_admin') {
+    $backUrl = 'history.php';
+}
+
+$avatarChar = mb_substr($currentUser['full_name'] ?: $currentUser['username'] ?: 'U', 0, 1, 'UTF-8');
+?>
 <!DOCTYPE html>
 <html lang="th">
 
@@ -29,15 +117,12 @@
             --bg-color: #1a1a2e;
             --card-bg: #252542;
             --text-color: #f8f9fa;
-            /* ปรับให้ขาวสว่างขึ้น */
             --text-muted: #b0b0c0;
-            /* ปรับเทาให้สว่างขึ้น */
             --navbar-bg: #301b5e;
             --sidebar-hover: #35355e;
             --border-color: #44446b;
             --input-bg: #1a1a2e;
             --input-text: #ffffff;
-            /* ตัวหนังสือในช่องกรอกให้เป็นสีขาว */
             --input-placeholder: #7a7a9d;
         }
 
@@ -66,11 +151,14 @@
             border: none;
             border-radius: 25px;
             padding: 8px 25px;
-            font-weight: 500;
+            font-weight: 600;
+            transition: filter 0.2s, transform 0.15s;
         }
 
         .btn-custom-yellow:hover {
             background-color: #e5b337;
+            filter: brightness(1.05);
+            transform: translateY(-1px);
         }
 
         .settings-container {
@@ -99,8 +187,6 @@
             color: #d8ccee;
         }
 
-        /* ปรับสีเมนูในโหมดมืด */
-
         .nav-pills .nav-link:hover {
             background-color: var(--sidebar-hover);
         }
@@ -112,10 +198,8 @@
 
         [data-theme="dark"] .nav-pills .nav-link.active {
             background-color: #6a44b8;
-            /* ปรับสีม่วงให้สว่างขึ้นในโหมดมืด */
         }
 
-        /* จัดการสไตล์ช่องกรอกข้อมูล (Input & Select) */
         .form-control,
         .form-select {
             background-color: var(--input-bg);
@@ -133,33 +217,34 @@
             box-shadow: 0 0 0 0.2rem rgba(169, 128, 255, 0.25);
         }
 
-        /* ปรับสี Placeholder (คำใบ้ในช่องกรอก) */
         .form-control::placeholder {
             color: var(--input-placeholder);
             opacity: 1;
         }
 
-        /* ปรับแต่ง Dropdown Select (option) สำหรับโหมดมืด */
         [data-theme="dark"] select option {
             background-color: #252542;
             color: white;
         }
 
         .avatar-preview {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
-            background-color: #eaddf5;
+            background: linear-gradient(135deg, #ede4f8, #dfd0f4);
+            border: 2px solid #5c3b99;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.2rem;
+            font-weight: 700;
             color: #5c3b99;
-            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(92, 59, 153, 0.15);
         }
 
         [data-theme="dark"] .avatar-preview {
-            background-color: #442a75;
+            background: #442a75;
+            border-color: #a980ff;
             color: #eaddf5;
         }
 
@@ -177,22 +262,36 @@
 
     <div class="top-navbar-card d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-            <a href="index.php" class="text-decoration-none d-flex align-items-center">
+            <a href="<?= htmlspecialchars($backUrl) ?>" class="text-decoration-none d-flex align-items-center">
                 <div class="bg-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 55px; height: 55px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    <img src="https://upload.wikimedia.org/wikipedia/th/thumb/a/a4/Provincial_Electricity_Authority_Logo.svg/800px-Provincial_Electricity_Authority_Logo.svg.png" alt="Logo" style="width: 35px;">
+                    <img src="pea-logo.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain;" onerror="this.src='https://upload.wikimedia.org/wikipedia/th/thumb/a/a4/Provincial_Electricity_Authority_Logo.svg/800px-Provincial_Electricity_Authority_Logo.svg.png'">
                 </div>
                 <div>
                     <h4 class="m-0 fw-bold text-white">ตั้งค่าระบบ</h4>
-                    <div style="font-size: 0.8rem; color: #d8ccee;">จัดการข้อมูลส่วนตัวและการแสดงผล</div>
+                    <div style="font-size: 0.8rem; color: #d8ccee;">จัดการข้อมูลส่วนตัวและการแสดงผล (<?= htmlspecialchars($currentUser['dept_name']) ?>)</div>
                 </div>
             </a>
         </div>
         <div>
-            <a href="index.php" class="btn btn-light fw-bold" style="border-radius: 25px; padding: 8px 20px; color: #4b2f89;">กลับหน้าหลัก</a>
+            <a href="<?= htmlspecialchars($backUrl) ?>" class="btn btn-light fw-bold" style="border-radius: 25px; padding: 8px 20px; color: #4b2f89;">กลับหน้าหลัก</a>
         </div>
     </div>
 
     <div class="settings-container">
+        <?php if (!empty($msgSuccess)): ?>
+            <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
+                <?= htmlspecialchars($msgSuccess) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($msgError)): ?>
+            <div class="alert alert-danger alert-dismissible fade show fw-bold" role="alert">
+                <?= htmlspecialchars($msgError) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <!-- Sidebar Menu -->
             <div class="col-md-3 mb-4">
@@ -214,38 +313,35 @@
                         <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel">
                             <h4 class="fw-bold mb-4 text-dark-custom">ข้อมูลส่วนตัว (Profile)</h4>
                             <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px solid var(--border-color);">
-                                <div class="avatar-preview me-4">W</div>
+                                <div class="avatar-preview me-4"><?= htmlspecialchars($avatarChar) ?></div>
                                 <div>
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">เปลี่ยนรูปโปรไฟล์</button>
-                                    <div class="text-muted-custom mt-2" style="font-size: 0.85rem;">รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 2MB</div>
+                                    <h5 class="fw-bold mb-1 text-dark-custom"><?= htmlspecialchars($currentUser['full_name']) ?></h5>
+                                    <div class="text-muted-custom" style="font-size: 0.9rem;">สถานะ: <span class="badge bg-purple" style="background:#5c3b99;"><?= htmlspecialchars($currentUser['role_title']) ?></span></div>
                                 </div>
                             </div>
-                            <form>
+                            <form method="POST" action="setting.php">
+                                <input type="hidden" name="action" value="update_profile">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label text-muted-custom fw-bold">ชื่อ-นามสกุล</label>
-                                        <input type="text" class="form-control fw-bold" value="วุฒิชัย ชั่งทอง">
+                                        <input type="text" name="full_name" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['full_name']) ?>" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">รหัสพนักงาน</label>
-                                        <input type="text" class="form-control fw-bold" value="EMP-10293">
+                                        <label class="form-label text-muted-custom fw-bold">ชื่อผู้ใช้งาน (Username / รหัส)</label>
+                                        <input type="text" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['username']) ?>" readonly style="background-color: rgba(0,0,0,0.05);">
                                     </div>
                                 </div>
                                 <div class="row mb-4">
                                     <div class="col-md-6">
                                         <label class="form-label text-muted-custom fw-bold">เบอร์โทรศัพท์ (สำหรับติดต่อรับของ)</label>
-                                        <input type="text" class="form-control fw-bold" value="0865559988" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                        <input type="text" name="phone" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['phone']) ?>" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="เช่น 0812345678" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label text-muted-custom fw-bold">เลือกแผนก / หน่วยงาน</label>
-                                        <select class="form-select fw-bold">
-                                            <option selected>แผนกโครงข่ายสื่อสารหลัก</option>
-                                            <option>แผนกระบบสื่อสารสนับสนุนงานระบบไฟฟ้า</option>
-                                            <option>แผนกเทคโนโลยีการสื่อสารองค์กร</option>
-                                        </select>
+                                        <label class="form-label text-muted-custom fw-bold">สังกัดแผนก / หน่วยงาน</label>
+                                        <input type="text" class="form-control fw-bold" value="<?= htmlspecialchars($currentUser['dept_name']) ?>" readonly style="background-color: rgba(0,0,0,0.05);">
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-custom-yellow px-4 fw-bold">บันทึกการเปลี่ยนแปลง</button>
+                                <button type="submit" class="btn btn-custom-yellow px-4 fw-bold">บันทึกการเปลี่ยนแปลง</button>
                             </form>
                         </div>
 
@@ -270,23 +366,29 @@
                         <!-- 3. ความปลอดภัย -->
                         <div class="tab-pane fade" id="v-pills-security" role="tabpanel">
                             <h4 class="fw-bold mb-4 text-dark-custom">ความปลอดภัย (Security)</h4>
-                            <div class="mb-5">
-                                <h6 class="fw-bold text-muted-custom mb-3">เปลี่ยนรหัสผ่าน</h6>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <input type="password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านปัจจุบัน">
+                            <form method="POST" action="setting.php">
+                                <input type="hidden" name="action" value="change_password">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-muted-custom mb-3">เปลี่ยนรหัสผ่าน</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted-custom fw-bold">รหัสผ่านปัจจุบัน</label>
+                                            <input type="password" name="current_password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านปัจจุบัน" required>
+                                        </div>
                                     </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted-custom fw-bold">รหัสผ่านใหม่</label>
+                                            <input type="password" name="new_password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร)" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted-custom fw-bold">ยืนยันรหัสผ่านใหม่</label>
+                                            <input type="password" name="confirm_password" class="form-control fw-bold" placeholder="ยืนยันรหัสผ่านใหม่" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-custom-yellow px-4 mt-2 fw-bold">อัปเดตรหัสผ่าน</button>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <input type="password" class="form-control mb-2 fw-bold" placeholder="รหัสผ่านใหม่">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <input type="password" class="form-control fw-bold" placeholder="ยืนยันรหัสผ่านใหม่">
-                                    </div>
-                                </div>
-                                <button class="btn btn-custom-yellow px-4 mt-2 fw-bold">อัปเดตรหัสผ่าน</button>
-                            </div>
+                            </form>
                         </div>
 
                     </div>
