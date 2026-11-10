@@ -607,7 +607,7 @@ if (isset($_GET['ajax_table'])) {
             .search-box { width: 100%; }
         }
     </style>
-    <link rel="stylesheet" href="theme.css?v=2">
+    <link rel="stylesheet" href="theme.css?v=3">
 </head>
 <body>
 <main class="shell">
@@ -623,8 +623,8 @@ if (isset($_GET['ajax_table'])) {
             </div>
         </div>
         <div class="actions">
-            <a href="setting.php" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);box-shadow:none;padding:12px 16px;" title="ตั้งค่าระบบ">ตั้งค่า</a>
-            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+            <a href="setting.php" class="btn-header-manage" title="ตั้งค่าบัญชีและจัดการระบบ"><?php if (in_array($currentUser['role'], ['admin', 'super_admin'], true)): ?><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>จัดการผู้ใช้</span><?php else: ?><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>ตั้งค่าบัญชี</span><?php endif; ?></a>
+            <a href="index.php?logout=1" class="btn-header-back" title="ออกจากระบบ / ย้อนกลับ"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg><span>ย้อนกลับ</span></a>
         </div>
     </div>
 

@@ -1,0 +1,21 @@
+# Ignore uploaded equipment and borrower images
+/uploads/*
+!/uploads/.gitkeep
+
+# Ignore root temporary images if any
+image.png
+
+# Ignore configuration and environment files with credentials
+.env
+config.local.php
+
+# Ignore OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Ignore nested git / backup folders
+/PEA Project/
+/Prject Borrow PEA/
+/ProjectPEA/

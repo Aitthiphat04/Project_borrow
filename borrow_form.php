@@ -37,6 +37,19 @@ $borrowersByDept = [];
 foreach ($registeredBorrowers as $b) {
     $borrowersByDept[$b['dept_name']][] = $b;
 }
+
+// ดึงรายชื่อผู้ให้ยืม (Lender) ประจำแผนกจากฐานข้อมูล
+$registeredLenders = [];
+$defaultLenderName = $currentUser['full_name'] ?? '';
+$lenderRes = $conn->query("SELECT id, username, full_name, dept_name FROM department_users WHERE role = 'lender' ORDER BY id ASC");
+if ($lenderRes) {
+    while ($lRow = $lenderRes->fetch_assoc()) {
+        $registeredLenders[] = $lRow;
+        if ($currentUser['role'] !== 'lender' && $lRow['dept_name'] === $displayDept) {
+            $defaultLenderName = $lRow['full_name'];
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -103,7 +116,12 @@ foreach ($registeredBorrowers as $b) {
     </div>
     <div class="field">
         <label for="lender_name">ผู้ให้ยืม</label>
-        <input id="lender_name" placeholder="ชื่อผู้ส่งมอบอุปกรณ์">
+        <input id="lender_name" list="lender_suggestions" placeholder="ชื่อผู้ส่งมอบอุปกรณ์">
+        <datalist id="lender_suggestions">
+            <?php foreach ($registeredLenders as $lItem): ?>
+                <option value="<?= htmlspecialchars($lItem['full_name'], ENT_QUOTES) ?>"><?= htmlspecialchars($lItem['dept_name'], ENT_QUOTES) ?></option>
+            <?php endforeach; ?>
+        </datalist>
     </div>
 </div>
 <section class="gallery borrower-gallery" id="borrowerGallery" style="margin-top:4px;margin-bottom:16px;border-color:#d9ac3b;">
@@ -169,7 +187,7 @@ if(borrowerPhone){
 }
 initBorrowerField();
 itemName.value=formParams.get('item')||'';
-if(!lenderName.value){lenderName.value=formParams.get('lender')||'<?= htmlspecialchars($currentUser["full_name"] ?? "", ENT_QUOTES) ?>';}
+if(!lenderName.value){lenderName.value=formParams.get('lender')||'<?= htmlspecialchars($defaultLenderName, ENT_QUOTES) ?>';}
 function setMode(next){mode=next;modeButtons.forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));returnOnly.forEach(e=>e.style.display=mode==='Return'?'block':'none');returnHelp.style.display=mode==='Return'?'block':'none';if(borrowerGallery)borrowerGallery.style.display=mode==='Return'?'none':'block';photoTitle.innerHTML=mode==='Return'?'หลักฐานสภาพขณะรับคืน <span class="required">*</span>':'หลักฐานสภาพก่อนส่งมอบ <span class="required">*</span>';submit.textContent=mode==='Return'?'บันทึกการรับคืนและตรวจสภาพ':'บันทึกการส่งมอบพร้อมรูปภาพ';images=[];render();renderBorrowerPhoto();}modeButtons.forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 function render(){photos.innerHTML=images.length?'':'<div class="empty">ยังไม่มีรูปภาพ</div>';images.forEach((src,i)=>{const card=document.createElement('div');card.className='photo';card.innerHTML=`<img src="${src}" alt="รูปที่ ${i+1}"><button type="button">ลบรูป</button>`;card.querySelector('button').onclick=()=>{images.splice(i,1);render()};photos.appendChild(card)})}
 function renderBorrowerPhoto(){if(!borrowerPhotoDisplay)return;if(borrowerImage){borrowerPhotoDisplay.innerHTML=`<div class="borrower-photo-card"><img src="${borrowerImage}" alt="รูปถ่ายผู้ยืม"><button type="button" id="removeBorrowerBtn">ลบรูปผู้ยืม</button></div>`;document.getElementById('removeBorrowerBtn').onclick=()=>{borrowerImage=null;renderBorrowerPhoto();};}else{borrowerPhotoDisplay.innerHTML='<div class="empty">ยังไม่มีรูปถ่ายผู้ยืม</div>';}}

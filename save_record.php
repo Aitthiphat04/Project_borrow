@@ -3,6 +3,7 @@ header('Content-Type: text/plain; charset=utf-8');
 date_default_timezone_set('Asia/Bangkok');
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
 
 function column_exists($conn, $column) {
     $column = $conn->real_escape_string($column);
@@ -126,34 +127,8 @@ function cleanup_orphaned_images($conn) {
     return $deletedCount;
 }
 
-function resequence_dept_seq($conn, $department = null) {
-    $conn->query("UPDATE transactions SET department = 'แผนกโครงข่ายสื่อสารหลัก' WHERE department IS NULL OR TRIM(department) = ''");
-    $departments = [];
-    if ($department !== null && trim($department) !== '') {
-        $departments[] = trim($department);
-    } else {
-        $res = $conn->query("SELECT DISTINCT department FROM transactions");
-        if ($res) {
-            while ($row = $res->fetch_assoc()) {
-                if (!empty($row['department'])) {
-                    $departments[] = $row['department'];
-                }
-            }
-        }
-    }
-    foreach ($departments as $dept) {
-        $deptEsc = $conn->real_escape_string($dept);
-        $conn->query("SET @dept_num := 0");
-        $conn->query("UPDATE transactions SET dept_seq = (@dept_num := @dept_num + 1) WHERE department = '$deptEsc' ORDER BY id ASC");
-    }
-}
-
-function resequence_ids($conn) {
-    $conn->query("SET @num := 0");
-    $conn->query("UPDATE transactions SET id = (@num := @num + 1) ORDER BY id ASC");
-    $conn->query("ALTER TABLE transactions AUTO_INCREMENT = 1");
-    resequence_dept_seq($conn);
-}
+// แนวทางที่ 2: รักษารหัส ID และ dept_seq ในฐานข้อมูลให้คงที่ถาวร (Immutable Primary Keys)
+// โดยไม่สั่ง UPDATE จัดเรียงใหม่ เพื่อป้องกันข้อมูลและลิงก์ประวัติคลาดเคลื่อน
 ensure_transaction_columns($conn);
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 
@@ -243,33 +218,85 @@ if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'approve_extension
 }
 
 if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'cleanup_orphans') {
+    $curUser = current_user();
+    if (!$curUser['is_logged_in'] || !in_array($curUser['role'], ['admin', 'super_admin'], true)) {
+        http_response_code(403);
+        exit('คุณไม่มีสิทธิ์ในการจัดการไฟล์ในระบบ');
+    }
     $cleaned = cleanup_orphaned_images($conn);
     exit("ล้างไฟล์รูปภาพตกค้างในระบบเรียบร้อยแล้ว ($cleaned ไฟล์)");
 }
 
 if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+    $curUser = current_user();
+    if (!$curUser['is_logged_in'] || !in_array($curUser['role'], ['admin', 'super_admin'], true)) {
+        http_response_code(403);
+        exit('คุณไม่มีสิทธิ์ในการลบรายการ (ต้องเป็นผู้ดูแลระบบเท่านั้น)');
+    }
     $id = (int)($_POST['id'] ?? 0);
     if ($id < 1) { http_response_code(422); exit('รหัสรายการไม่ถูกต้อง'); }
-    $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
+
+    // ตรวจสอบสิทธิ์ประจำแผนก (หากไม่ใช่ Super Admin ต้องลบได้เฉพาะแผนกของตนเอง)
+    if (!$curUser['is_super']) {
+        $chkDept = $conn->prepare("SELECT department FROM transactions WHERE id = ? LIMIT 1");
+        $chkDept->bind_param('i', $id);
+        $chkDept->execute();
+        $rowDept = $chkDept->get_result()->fetch_assoc();
+        $chkDept->close();
+        if (!$rowDept || $rowDept['department'] !== $curUser['dept_name']) {
+            http_response_code(403);
+            exit('คุณมีสิทธิ์ลบได้เฉพาะรายการภายในแผนกของคุณเท่านั้น');
+        }
+    }
+
+    $stmtFind = $conn->prepare("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = ?");
+    $stmtFind->bind_param('i', $id);
+    $stmtFind->execute();
+    $result = $stmtFind->get_result();
     if ($result && ($row = $result->fetch_assoc())) {
         delete_image_paths($row['image_path']);
         delete_image_paths($row['return_image_path']);
         delete_image_paths($row['borrower_image_path'] ?? '');
     }
-    if ($conn->query("DELETE FROM transactions WHERE id = $id")) {
-        resequence_ids($conn);
+    $stmtFind->close();
+
+    $stmtDel = $conn->prepare("DELETE FROM transactions WHERE id = ?");
+    $stmtDel->bind_param('i', $id);
+    if ($stmtDel->execute()) {
+        $stmtDel->close();
         cleanup_orphaned_images($conn);
         exit('ลบรายการและไฟล์รูปภาพเรียบร้อยแล้ว');
     }
+    $stmtDel->close();
     exit('ลบรายการไม่สำเร็จ');
 }
 
 if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete_batch') {
+    $curUser = current_user();
+    if (!$curUser['is_logged_in'] || !in_array($curUser['role'], ['admin', 'super_admin'], true)) {
+        http_response_code(403);
+        exit('คุณไม่มีสิทธิ์ในการลบรายการ (ต้องเป็นผู้ดูแลระบบเท่านั้น)');
+    }
     $raw_ids = $_POST['ids'] ?? [];
     if (is_string($raw_ids)) $raw_ids = explode(',', $raw_ids);
     $ids = array_values(array_filter(array_map('intval', (array)$raw_ids), fn($v) => $v > 0));
     if (empty($ids)) { http_response_code(422); exit('กรุณาเลือกรายการที่ต้องการลบอย่างน้อย 1 รายการ'); }
     $id_list = implode(',', $ids);
+
+    // ตรวจสอบสิทธิ์ประจำแผนก (หากไม่ใช่ Super Admin ต้องไม่มีรายการของแผนกอื่น)
+    if (!$curUser['is_super']) {
+        $userDept = $curUser['dept_name'];
+        $chkStmt = $conn->prepare("SELECT COUNT(*) as c FROM transactions WHERE id IN ($id_list) AND department != ?");
+        $chkStmt->bind_param('s', $userDept);
+        $chkStmt->execute();
+        $otherCount = (int)$chkStmt->get_result()->fetch_assoc()['c'];
+        $chkStmt->close();
+        if ($otherCount > 0) {
+            http_response_code(403);
+            exit('มีบางรายการที่ไม่ได้สังกัดในแผนกของคุณ จึงไม่สามารถดำเนินการลบได้');
+        }
+    }
+
     $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id IN ($id_list)");
     while ($result && ($row = $result->fetch_assoc())) {
         delete_image_paths($row['image_path']);
@@ -278,7 +305,6 @@ if ($requestMethod === 'POST' && ($_POST['action'] ?? '') === 'delete_batch') {
     }
     $count = count($ids);
     if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
-        resequence_ids($conn);
         cleanup_orphaned_images($conn);
         exit("ลบรายการที่เลือกและไฟล์รูปภาพเรียบร้อยแล้ว ($count รายการ)");
     }
@@ -383,56 +409,16 @@ if ($requestMethod === 'POST') {
 }
 if ($requestMethod === 'GET' && isset($_GET['action'])) {
     if ($_GET['action'] === 'cleanup_orphans') {
+        $curUser = current_user();
+        if (!$curUser['is_logged_in'] || !in_array($curUser['role'], ['admin', 'super_admin'], true)) {
+            http_response_code(403);
+            exit('คุณไม่มีสิทธิ์ในการจัดการไฟล์ในระบบ');
+        }
         $cleaned = cleanup_orphaned_images($conn);
         exit("ล้างไฟล์รูปภาพตกค้างในระบบเรียบร้อยแล้ว ($cleaned ไฟล์)");
     }
-    if ($_GET['action'] === 'delete' && isset($_GET['id'])) {
-        $id = (int)$_GET['id'];
-        $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id = $id");
-        if ($result && ($row = $result->fetch_assoc())) {
-            delete_image_paths($row['image_path']);
-            delete_image_paths($row['return_image_path']);
-            delete_image_paths($row['borrower_image_path'] ?? '');
-        }
-        if ($conn->query("DELETE FROM transactions WHERE id = $id")) {
-            resequence_ids($conn);
-            cleanup_orphaned_images($conn);
-            exit('ลบรายการและไฟล์รูปภาพเรียบร้อยแล้ว');
-        }
-        exit('ลบรายการไม่สำเร็จ');
-    }
-    if ($_GET['action'] === 'delete_batch' && isset($_GET['ids'])) {
-        $ids = array_values(array_filter(array_map('intval', explode(',', (string)$_GET['ids'])), fn($v) => $v > 0));
-        if (empty($ids)) { http_response_code(422); exit('กรุณาเลือกรายการที่ต้องการลบอย่างน้อย 1 รายการ'); }
-        $id_list = implode(',', $ids);
-        $result = $conn->query("SELECT image_path, return_image_path, borrower_image_path FROM transactions WHERE id IN ($id_list)");
-        while ($result && ($row = $result->fetch_assoc())) {
-            delete_image_paths($row['image_path']);
-            delete_image_paths($row['return_image_path']);
-            delete_image_paths($row['borrower_image_path'] ?? '');
-        }
-        $count = count($ids);
-        if ($conn->query("DELETE FROM transactions WHERE id IN ($id_list)")) {
-            resequence_ids($conn);
-            cleanup_orphaned_images($conn);
-            exit("ลบรายการที่เลือกและไฟล์รูปภาพเรียบร้อยแล้ว ($count รายการ)");
-        }
-        exit('ลบรายการไม่สำเร็จ');
-    }
-    if ($_GET['action'] === 'delete_all') {
-        $result = $conn->query('SELECT image_path, return_image_path, borrower_image_path FROM transactions');
-        while ($result && ($row = $result->fetch_assoc())) {
-            delete_image_paths($row['image_path']);
-            delete_image_paths($row['return_image_path']);
-            delete_image_paths($row['borrower_image_path'] ?? '');
-        }
-        if ($conn->query('DELETE FROM transactions')) {
-            $conn->query('ALTER TABLE transactions AUTO_INCREMENT = 1');
-            cleanup_orphaned_images($conn);
-            exit('ลบประวัติและไฟล์รูปภาพทั้งหมดเรียบร้อยแล้ว');
-        }
-        exit('ลบประวัติทั้งหมดไม่สำเร็จ');
-    }
+    http_response_code(405);
+    exit('ไม่อนุญาตให้ดำเนินการลบผ่านคำสั่ง GET เพื่อความปลอดภัยของข้อมูล กรุณาใช้คำสั่ง POST เท่านั้น');
 }
 if ($requestMethod !== '') {
     http_response_code(400); echo 'รูปแบบคำขอไม่ถูกต้อง';

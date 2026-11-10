@@ -72,7 +72,7 @@ function render_lender_rows($result, $currentUser = null, $isAllDeptsView = null
     if ($isAllDeptsView === null) {
         $isAllDeptsView = !empty($currentUser['is_super']) && (($_SESSION['super_admin_view_dept'] ?? 'all') === 'all') && (empty($_GET['dept_filter']) || $_GET['dept_filter'] === 'all');
     }
-    if ($result && $result->num_rows) {
+    if ($result && $result->num_rows) { $seq = 1;
         while ($row = $result->fetch_assoc()) {
             $borrowImages = image_list($row['image_path']);
             $returnImages = image_list($row['return_image_path']);
@@ -105,10 +105,11 @@ function render_lender_rows($result, $currentUser = null, $isAllDeptsView = null
                 'note' => $row['condition_note']
             ], JSON_UNESCAPED_UNICODE));
 
-            $dispSeq = $isAllDeptsView ? (int)$row['id'] : (int)($row['dept_seq'] ?? $row['id']);
+            $rowSeq = $seq++;
+            $dispSeq = $rowSeq;
             $seqTitle = $isAllDeptsView
-                ? 'รหัสลำดับระบบ #' . (int)$row['id'] . ' (ลำดับในแผนก: #' . (int)($row['dept_seq'] ?? $row['id']) . ')'
-                : 'ลำดับในแผนก #' . (int)($row['dept_seq'] ?? $row['id']) . ' (รหัสระบบ: #' . (int)$row['id'] . ')';
+                ? 'ลำดับที่ ' . $dispSeq . ' [รหัสระบบ: #' . (int)$row['id'] . ', ในแผนก: #' . (int)($row['dept_seq'] ?? $row['id']) . ']'
+                : 'ลำดับที่ ' . $dispSeq . ' [ในแผนก: #' . (int)($row['dept_seq'] ?? $row['id']) . ', รหัสระบบ: #' . (int)$row['id'] . ']';
 
             $searchCorpus = mb_strtolower(implode(' ', [
                 $row['department'] ?? '',
@@ -130,7 +131,7 @@ function render_lender_rows($result, $currentUser = null, $isAllDeptsView = null
             ]));
             ?>
             <tr class="transaction-row" data-id="<?= (int)$row['id'] ?>" data-status="<?= e($status) ?>" data-returned="<?= $row['return_time'] ? '1' : '0' ?>" data-extension="<?= e($extStatus) ?>" data-search="<?= e($searchCorpus) ?>">
-                <td class="col-seq" title="<?= e($seqTitle) ?>"><?= $dispSeq ?></td>
+                <td class="col-seq" data-id="<?= (int)$row['id'] ?>" data-dept-seq="<?= (int)($row['dept_seq'] ?? $row['id']) ?>" title="<?= e($seqTitle) ?>"><?= $dispSeq ?></td>
                 <td>
                     <div class="borrower-cell">
                         <?php if (!empty($row['borrower_image_path'])): ?>
@@ -594,7 +595,7 @@ if (isset($_GET['ajax_table'])) {
             .search-box { width: 100%; }
         }
     </style>
-    <link rel="stylesheet" href="theme.css?v=2">
+    <link rel="stylesheet" href="theme.css?v=3">
 </head>
 <body>
 <main class="shell">
@@ -612,8 +613,9 @@ if (isset($_GET['ajax_table'])) {
         <div class="actions">
             <button class="borrow-open" id="borrowOpen">＋ ยืมอุปกรณ์</button>
             <button type="button" class="btn-select-mode btn-ext-top" id="btnFilterPendingExt" style="background: linear-gradient(135deg, #e67e22, #ca640a); border-color: #fca566; box-shadow: 0 5px 14px rgba(202, 100, 10, 0.25);">คำขอต่อเวลา (<span id="topPendingCount"><?= $pendingExtCount ?></span>)</button>
-            <a href="setting.php" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.35);box-shadow:none;padding:12px 16px;" title="ตั้งค่าระบบ">ตั้งค่า</a>
-            <a href="index.php?logout=1" class="btn-select-mode" style="text-decoration:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);box-shadow:none;padding:12px 16px;" title="ออกจากระบบ / ย้อนกลับ">ย้อนกลับ</a>
+            <span class="header-divider" aria-hidden="true"></span>
+            <a href="setting.php" class="btn-header-manage" title="ตั้งค่าบัญชีและจัดการระบบ"><?php if (in_array($currentUser['role'], ['admin', 'super_admin'], true)): ?><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>จัดการผู้ใช้</span><?php else: ?><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>ตั้งค่าบัญชี</span><?php endif; ?></a>
+            <a href="index.php?logout=1" class="btn-header-back" title="ออกจากระบบ / ย้อนกลับ"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg><span>ย้อนกลับ</span></a>
         </div>
     </div>
 
@@ -828,7 +830,11 @@ function applyFilter() {
 
         const isVisible = statusMatch && searchMatch;
         row.style.display = isVisible ? '' : 'none';
-        if (isVisible) visibleCount++;
+        if (isVisible) {
+            visibleCount++;
+            const seqEl = row.querySelector('.col-seq');
+            if (seqEl) seqEl.textContent = visibleCount;
+        }
     });
 
     if (visibleCountEl) visibleCountEl.textContent = visibleCount;
